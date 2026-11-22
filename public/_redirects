@@ -1,0 +1,11 @@
+# Cloudflare Pages 路由
+#
+# 注意：不要给 /promotions、/checkout 这类「无扩展名 ↔ .html」写 301 规则，
+# 否则会 301 → .html → 308 → 无扩展名 无限重定向。
+#
+# /order/<no>      由 functions/order/[[path]].js 200 直出 order.html
+# /vi-nsg/product  由 functions/vi-nsg/product/[[path]].js 200 直出 product.html
+# /vi-nsg/category 由 functions/vi-nsg/category/[[path]].js 200 直出 category.html
+# /vi-nsg/collection 由 functions/vi-nsg/collection/[[path]].js 200 直出 category.html
+
+/vi-nsg / 302

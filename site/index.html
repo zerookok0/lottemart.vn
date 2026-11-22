@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LOTTE Mart Việt Nam — Đi chợ online, giao nhanh 2 giờ</title>
+  <meta name="description" content="Trang web/Ứng dụng Đi chợ Online chính thức của LOTTE Mart Việt Nam. Nhiều ưu đãi, mã giảm giá, voucher hấp dẫn.">
+  <meta property="og:title" content="LOTTE Mart Việt Nam">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://www.lottemart.vn">
+  <link rel="stylesheet" href="/assets/base.css">
+
+  <!-- ① UTM 捕获：同步内联，必须最先执行，且每个页面都要有 -->
+  <script>
+  (function(){
+    var K=['utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+           'utm_id','fbclid','ttclid','gclid','adset_id','campaign_id',
+           'sub1','sub2','sub3','sub4','sub5'];
+    function grab(q){var o={},p=(q||'').replace(/^\?/,'').split('&');for(var i=0;i<p.length;i++){
+      var kv=p[i].split('=');if(kv.length<2)continue;try{var k=decodeURIComponent(kv[0]);
+      if(K.indexOf(k)!==-1)o[k]=decodeURIComponent(kv.slice(1).join('='));}catch(e){}}return o;}
+    function load(){try{return JSON.parse(sessionStorage.getItem('bp_utm')||'{}')}catch(e){return {}}}
+    function save(o){try{sessionStorage.setItem('bp_utm',JSON.stringify(o))}catch(e){}
+      try{var d=new Date();d.setTime(d.getTime()+7*864e5);
+      document.cookie='bp_utm='+encodeURIComponent(JSON.stringify(o))+'; expires='+d.toUTCString()+'; path=/; SameSite=Lax';}catch(e){}}
+    var cur=load(),add=false;
+    var m=grab(location.search); for(var a in m){cur[a]=m[a];add=true}
+    try{var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
+      if(n&&n.name){var mm=grab(n.name.split('?')[1]||'');for(var b in mm){cur[b]=mm[b];add=true}}}catch(e){}
+    try{if(document.referrer){var mm2=grab((document.referrer.split('?')[1])||'');
+      for(var c in mm2){if(!cur[c]){cur[c]=mm2[c];add=true}}}}catch(e){}
+    if(add)save(cur);
+    window.__BP_UTM__=cur;
+  })();
+  </script>
+
+  <script src="/assets/config.js"></script>
+  <script defer src="/assets/pixel.js"></script>
+  <script defer src="/assets/app.js"></script>
+  <script defer src="/assets/layout.js"></script>
+  <script defer src="/assets/home.js"></script>
+</head>
+<body data-page="home">
+  <div data-lm-header></div>
+  <main class="lm-main"></main>
+  <div data-lm-footer></div>
+</body>
+</html>

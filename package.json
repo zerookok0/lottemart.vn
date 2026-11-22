@@ -1,0 +1,22 @@
+﻿{
+  "name": "lottemart-vn-clone",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "1:1 storefront clone of lottemart.vn — static site + Cloudflare Pages Functions + /bp checkout connector",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/serve.mjs",
+    "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
+    "fetch": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/fetch-catalog.ps1",
+    "parse": "node scripts/parse-catalog.mjs",
+    "info": "node scripts/gen-info.mjs",
+    "verify": "node scripts/verify-contract.mjs",
+    "e2e": "node scripts/e2e.mjs",
+    "shots": "node scripts/shots.mjs"
+  }
+}
+

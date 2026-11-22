@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng ký thành viên | LOTTE Mart Việt Nam</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/base.css">
+  <script>
+  (function(){
+    var K=['utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+           'utm_id','fbclid','ttclid','gclid','adset_id','campaign_id',
+           'sub1','sub2','sub3','sub4','sub5'];
+    function grab(q){var o={},p=(q||'').replace(/^\?/,'').split('&');for(var i=0;i<p.length;i++){
+      var kv=p[i].split('=');if(kv.length<2)continue;try{var k=decodeURIComponent(kv[0]);
+      if(K.indexOf(k)!==-1)o[k]=decodeURIComponent(kv.slice(1).join('='));}catch(e){}}return o;}
+    function load(){try{return JSON.parse(sessionStorage.getItem('bp_utm')||'{}')}catch(e){return {}}}
+    function save(o){try{sessionStorage.setItem('bp_utm',JSON.stringify(o))}catch(e){}
+      try{var d=new Date();d.setTime(d.getTime()+7*864e5);
+      document.cookie='bp_utm='+encodeURIComponent(JSON.stringify(o))+'; expires='+d.toUTCString()+'; path=/; SameSite=Lax';}catch(e){}}
+    var cur=load(),add=false;
+    var m=grab(location.search); for(var a in m){cur[a]=m[a];add=true}
+    try{var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
+      if(n&&n.name){var mm=grab(n.name.split('?')[1]||'');for(var b in mm){cur[b]=mm[b];add=true}}}catch(e){}
+    try{if(document.referrer){var mm2=grab((document.referrer.split('?')[1])||'');
+      for(var c in mm2){if(!cur[c]){cur[c]=mm2[c];add=true}}}}catch(e){}
+    if(add)save(cur);
+    window.__BP_UTM__=cur;
+  })();
+  </script>
+  <script src="/assets/config.js"></script>
+  <script defer src="/assets/pixel.js"></script>
+  <script defer src="/assets/app.js"></script>
+  <script defer src="/assets/layout.js"></script>
+  <script defer src="/assets/auth.js"></script>
+</head>
+<body data-page="register">
+  <div data-lm-header></div>
+  <main class="lm-main">
+    <div class="container">
+      <div class="lm-auth">
+        <div class="lm-auth-card">
+          <div class="lm-auth-brand">
+            <a class="lm-logo" href="/"><img src="/assets/logo-lotte.svg" alt="LOTTE Mart" width="30" height="30"><span class="lm-logo-word">LOTTE MART</span></a>
+            <p>Đăng ký thành viên — nhận ngay ưu đãi 40%</p>
+          </div>
+          <div class="lm-auth-box">
+            <h2 style="font-size:16px;margin-bottom:14px">Thông tin đăng ký</h2>
+            <div class="lm-form-err" data-form-err></div>
+            <form data-register-form novalidate>
+              <div class="lm-field">
+                <label for="rg-name">Họ và tên <span class="req">*</span></label>
+                <input id="rg-name" name="name" autocomplete="name" placeholder="Nguyễn Văn A">
+              </div>
+              <div class="lm-field-row">
+                <div class="lm-field">
+                  <label for="rg-email">Email <span class="req">*</span></label>
+                  <input id="rg-email" name="email" type="email" autocomplete="email" placeholder="email@example.com">
+                </div>
+                <div class="lm-field">
+                  <label for="rg-phone">Số điện thoại</label>
+                  <input id="rg-phone" name="phone" type="tel" autocomplete="tel" placeholder="0901 234 567">
+                </div>
+              </div>
+              <div class="lm-field-row">
+                <div class="lm-field">
+                  <label for="rg-pass">Mật khẩu <span class="req">*</span></label>
+                  <input id="rg-pass" name="password" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự">
+                </div>
+                <div class="lm-field">
+                  <label for="rg-pass2">Nhập lại mật khẩu <span class="req">*</span></label>
+                  <input id="rg-pass2" name="password2" type="password" autocomplete="new-password" placeholder="Nhập lại">
+                </div>
+              </div>
+              <div class="lm-field-row">
+                <div class="lm-field">
+                  <label for="rg-city">Tỉnh / Thành phố</label>
+                  <input id="rg-city" name="city" autocomplete="address-level2" placeholder="TP. Hồ Chí Minh">
+                </div>
+                <div class="lm-field">
+                  <label for="rg-zip">Mã bưu chính</label>
+                  <input id="rg-zip" name="zip" autocomplete="postal-code" placeholder="700000">
+                </div>
+              </div>
+              <div class="lm-field">
+                <label for="rg-addr">Địa chỉ</label>
+                <input id="rg-addr" name="address" autocomplete="address-line1" placeholder="Số nhà, tên đường">
+              </div>
+              <label class="lm-check mb-16">
+                <input type="checkbox" name="agree">
+                <span>Tôi đồng ý với <a href="/vi-nsg/membership-policy" target="_blank" rel="noopener">Điều kiện &amp; Điều khoản</a> và <a href="/vi-nsg/privacy" target="_blank" rel="noopener">Chính sách bảo mật</a> của LOTTE Mart Việt Nam.</span>
+              </label>
+              <button class="btn btn-block btn-lg" type="submit">Đăng ký</button>
+            </form>
+          </div>
+          <div class="lm-auth-foot">Đã có tài khoản? <a href="/login">Đăng nhập</a></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div data-lm-footer></div>
+</body>
+</html>

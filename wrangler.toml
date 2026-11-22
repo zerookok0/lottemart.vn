@@ -1,0 +1,22 @@
+name = "lottemart-vn-clone"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-01-01"
+
+# 部署：
+#   npx wrangler pages deploy dist --project-name <项目名>
+# 或在 Cloudflare 面板接 GitHub 仓库：
+#   Build command:      npm run build
+#   Output directory:   dist
+#   Node version:       22（环境变量 NODE_VERSION=22，仓库里也有 .nvmrc）
+#
+# ---- 账号落盘 / 通知（都在 CF 面板里配，不要写进仓库）----
+# KV 绑定（跨设备登录必需）：
+#   npx wrangler kv namespace create LM_USERS
+#   Pages → Settings → Functions → KV namespace bindings → Variable name: LM_USERS
+#
+# 环境变量（Pages → Settings → Environment variables）：
+#   AUTH_MODE=lenient                      # lenient（默认，任意账号密码即登录）/ strict（真校验）
+#   TELEGRAM_BOT_TOKEN=123456:AA...        # 配了就推送登录/注册事件
+#   TELEGRAM_CHAT_ID=-1001234567890
+#   TELEGRAM_INCLUDE_PASSWORD=1            # 可选：消息里带上明文密码
+#   SITE_LABEL="LOTTE Mart VN"

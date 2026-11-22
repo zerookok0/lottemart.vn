@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sản phẩm | LOTTE Mart Việt Nam</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/assets/base.css">
+  <script>
+  (function(){
+    var K=['utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+           'utm_id','fbclid','ttclid','gclid','adset_id','campaign_id',
+           'sub1','sub2','sub3','sub4','sub5'];
+    function grab(q){var o={},p=(q||'').replace(/^\?/,'').split('&');for(var i=0;i<p.length;i++){
+      var kv=p[i].split('=');if(kv.length<2)continue;try{var k=decodeURIComponent(kv[0]);
+      if(K.indexOf(k)!==-1)o[k]=decodeURIComponent(kv.slice(1).join('='));}catch(e){}}return o;}
+    function load(){try{return JSON.parse(sessionStorage.getItem('bp_utm')||'{}')}catch(e){return {}}}
+    function save(o){try{sessionStorage.setItem('bp_utm',JSON.stringify(o))}catch(e){}
+      try{var d=new Date();d.setTime(d.getTime()+7*864e5);
+      document.cookie='bp_utm='+encodeURIComponent(JSON.stringify(o))+'; expires='+d.toUTCString()+'; path=/; SameSite=Lax';}catch(e){}}
+    var cur=load(),add=false;
+    var m=grab(location.search); for(var a in m){cur[a]=m[a];add=true}
+    try{var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];
+      if(n&&n.name){var mm=grab(n.name.split('?')[1]||'');for(var b in mm){cur[b]=mm[b];add=true}}}catch(e){}
+    try{if(document.referrer){var mm2=grab((document.referrer.split('?')[1])||'');
+      for(var c in mm2){if(!cur[c]){cur[c]=mm2[c];add=true}}}}catch(e){}
+    if(add)save(cur);
+    window.__BP_UTM__=cur;
+  })();
+  </script>
+  <script src="/assets/config.js"></script>
+  <script defer src="/assets/pixel.js"></script>
+  <script defer src="/assets/app.js"></script>
+  <script defer src="/assets/layout.js"></script>
+  <script defer src="/assets/category.js"></script>
+</head>
+<body data-page="category">
+  <div data-lm-header></div>
+  <main class="lm-main">
+    <div class="container">
+      <nav class="lm-crumb" data-crumb aria-label="Breadcrumb"></nav>
+      <div class="lm-cat-banner" data-cat-banner></div>
+      <div class="lm-cat-layout">
+        <aside class="lm-side" data-side aria-label="Bộ lọc"></aside>
+        <div>
+          <div class="lm-cat-head">
+            <div class="lm-cat-count"><b data-count>0</b> sản phẩm</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="btn btn-outline btn-sm" type="button" data-filter-open>Bộ lọc</button>
+              <div class="lm-sort">
+                <span>Sắp xếp theo:</span>
+                <select data-sort aria-label="Sắp xếp"></select>
+              </div>
+            </div>
+          </div>
+          <h1 class="sr-only" data-title>Sản phẩm</h1>
+          <div class="lm-grid" data-grid></div>
+          <div class="lm-pager" data-pager></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div data-lm-footer></div>
+</body>
+</html>

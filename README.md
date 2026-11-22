@@ -131,6 +131,13 @@ window.LM_CONFIG = {
 **归属**：`PageView / ViewContent / AddToCart / InitiateCheckout / Purchase` **全部由站点 `site/assets/pixel.js` 打**；
 connector 只管卡片采集、守卫模式、3DS 验证屏 —— 不存在一单两次。
 
+> ⚠️ **`/bp/config.json` 里唯一改动过的字节：`pixel_enabled: false`。**
+> connector 自带一个 Purchase：`submitFlow()` 在「点提交、卡片校验通过」那一刻就 `fbq('track','Purchase')`，
+> 而站点侧是在「验证屏弹出」时打一次 —— 两边 eventID 不同，FB 不会去重，结果一单两次。
+> 所以把面板这个开关关掉（面板 README 里就是这个用途），Purchase 全权交给站点（带 `content_ids` + `eventID` + 24h 去重）。
+> 另在 `site/assets/checkout.js` 里做了双保险：connector 启动后强制 `BPConnector.config.pixel_enabled = false`，
+> 并在真的打了的时候 `console.warn` 留痕。要恢复面板自带像素：把该字段改回 `true`，同时关掉 `site/assets/config.js` 的 `pixelEvents.purchase`。
+
 **Purchase 去重**：
 
 ```
@@ -473,8 +480,8 @@ npx wrangler kv namespace create LM_USERS
 `npm run verify`（契约，109 项）+ `npm run e2e`（真浏览器全链路，69 项）最近一次输出：
 
 ```
-[verify] pass=109 fail=0   · 商品 14732 / 类目 399 / 真实评价 3264
-[e2e]    pass=75  fail=0
+[verify] pass=110 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[e2e]    pass=80  fail=0
 ```
 
 覆盖：
@@ -498,4 +505,6 @@ npx wrangler kv namespace create LM_USERS
 ---
 
 *本项目为内部复刻 / 联调用；`/bp/` 目录由面板方提供，站点侧不修改其内容。*
+
+
 

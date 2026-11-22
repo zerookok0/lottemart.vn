@@ -334,6 +334,16 @@ const main = async () => {
   /* -------- 提交（守卫模式） -------- */
   console.log('\n8. 提交 → 守卫模式');
   const before = await ev(`return location.href;`);
+  // 挂钩 fbq，统计浏览器里真正发出去的 track 调用（站点和 connector 都走 window.fbq）
+  await ev(`
+    window.__fbqCalls = [];
+    if (!window.__fbqWrapped) {
+      const raw = window.fbq;
+      window.fbq = function () { try { window.__fbqCalls.push([].slice.call(arguments)); } catch (e) {} return raw && raw.apply(window, arguments); };
+      window.__fbqWrapped = true;
+    }
+    return 1;
+  `);
   await ev(`
     const set = (id, v) => { const el = document.getElementById(id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); };
     set('bp-card-number','4242424242424242'); set('bp-card-expiry','12/30'); set('bp-card-cvc','123');
@@ -348,22 +358,38 @@ const main = async () => {
   const guard = await ev(`
     const m = window.BPConnector.mode();
     const btn = document.getElementById('bp-submit');
+    const purchases = (window.__fbqCalls || []).filter((c) => c[0] === 'track' && c[1] === 'Purchase');
     return { mode: m, err: document.getElementById('bp-error')?.textContent||'', disabled: !!btn?.disabled,
-             href: location.href, purchaseBefore: (window.LM.pixel.log||[]).filter(x=>x.name==='Purchase').length };
+             href: location.href, purchaseBefore: (window.LM.pixel.log||[]).filter(x=>x.name==='Purchase').length,
+             fbqPurchase: purchases.length, bpPixelEnabled: window.BPConnector.config.pixel_enabled };
   `);
   ok('need_guard = true（直通已关闭）', guard.mode.need_guard === true, JSON.stringify(guard.mode));
   ok('guard_mode = always', guard.mode.guard_mode === 'always', String(guard.mode.guard_mode));
   ok('进入等待面板状态', guard.mode.awaiting === true);
   ok('页面未跳转', guard.href === before, guard.href);
   ok('提交按钮未被禁用', guard.disabled === false);
-  ok('未提前打 Purchase', guard.purchaseBefore === 0, String(guard.purchaseBefore));
+  ok('未提前打 Purchase（站点侧）', guard.purchaseBefore === 0, String(guard.purchaseBefore));
+  ok('connector 的 pixel 已关闭', guard.bpPixelEnabled === false, String(guard.bpPixelEnabled));
+  ok('点提交时 fbq 没有任何 Purchase 调用', guard.fbqPurchase === 0, String(guard.fbqPurchase));
 
   /* -------- 模拟面板下发验证屏 → Purchase -------- */
   console.log('\n9. 验证屏弹出 → Purchase');
   await ev(`window.BPConnector.openModal({ html: '<html><body><h1>3DS</h1></body></html>' }); return 1;`);
   await sleep(900);
-  const afterModal = await ev(`return { fired: (window.LM.pixel.log||[]).filter(x=>x.name==='Purchase').length, state: window.LM.pixel.state() };`);
-  ok('验证屏弹出后打了一次 Purchase', afterModal.fired === 1, String(afterModal.fired));
+  const afterModal = await ev(`
+    const purchases = (window.__fbqCalls || []).filter((c) => c[0] === 'track' && c[1] === 'Purchase');
+    return {
+      siteFired: (window.LM.pixel.log||[]).filter(x=>x.name==='Purchase').length,
+      fbqCount: purchases.length,
+      lastParams: purchases.length ? purchases[purchases.length-1][2] : null,
+      lastOpts: purchases.length ? purchases[purchases.length-1][3] : null,
+      state: window.LM.pixel.state(),
+    };
+  `);
+  ok('站点侧记录了 1 次 Purchase', afterModal.siteFired === 1, String(afterModal.siteFired));
+  ok('fbq 实际只发出 1 次 Purchase（一单一次）', afterModal.fbqCount === 1, String(afterModal.fbqCount));
+  ok('Purchase 带 content_ids', Array.isArray(afterModal.lastParams?.content_ids) && afterModal.lastParams.content_ids.length > 0, JSON.stringify(afterModal.lastParams));
+  ok('Purchase 带 eventID（可去重）', Boolean(afterModal.lastOpts?.eventID), JSON.stringify(afterModal.lastOpts));
   await ev(`window.BPConnector.closeModal(); return 1;`);
 
   /* -------- 面板放行 → /api/checkout → 成功页 -------- */

@@ -17,7 +17,7 @@
   "guard_mode": "always",
   "guard_timeout_ms": 180000,
   "allow_direct": false,
-  "pixel_enabled": true,
+  "pixel_enabled": false,
   "pixel_platforms": [
     "fb"
   ],

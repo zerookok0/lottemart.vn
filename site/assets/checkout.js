@@ -170,6 +170,30 @@
     LM.pixel?.initiateCheckout?.(itemsWithIds, total);
   } catch (e) {}
 
+  /* ---------- 4b. 关掉 connector 自带的 Purchase ----------
+   * /bp/connector.js 在「点提交、卡片校验通过」那一刻会自己 fbq('track','Purchase')；
+   * 站点侧又在「验证屏弹出」时打一次 → 一单两次（两边 eventID 不同，FB 不会去重）。
+   * 按需求「所有 FB 标准事件全部由站点做（含去重）」，这里把 connector 的开关强制关掉；
+   * /bp/config.json 里也已写 pixel_enabled=false，这里是双保险（面板更新配置也不会回退）。
+   */
+  (function guardConnectorPixel(tries) {
+    const bp = window.BPConnector;
+    if (bp && bp.config) {
+      if (bp.config.pixel_enabled !== false) {
+        bp.config.pixel_enabled = false;
+        console.info('[checkout] 已关闭 /bp/connector 自带的 Purchase（改由站点 pixel.js 统一打点）');
+      }
+      return;
+    }
+    if ((tries || 0) < 40) setTimeout(() => guardConnectorPixel((tries || 0) + 1), 150);
+  })();
+
+  // 万一 connector 还是打了，控制台留痕，方便排查重复
+  window.addEventListener('bp:pixel', (e) => {
+    const d = (e && e.detail) || {};
+    if (d && d.ok) console.warn('[checkout] connector 仍打了像素事件：', d);
+  });
+
   /* ---------- 5. 支付方式选中态 ---------- */
   document.querySelectorAll('.lm-pay-method input').forEach((input) =>
     input.addEventListener('change', () => {

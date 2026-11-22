@@ -74,46 +74,67 @@
             </div>
             <div class="lm-field-row">
               <div class="lm-field">
+                <label for="t-phone">Số điện thoại <span class="req">*</span></label>
+                <input id="t-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901 234 567">
+              </div>
+              <div class="lm-field">
                 <label for="t-email">Email <span class="req">*</span></label>
                 <input id="t-email" name="email" type="email" autocomplete="email" placeholder="email@example.com">
               </div>
-              <div class="lm-field">
-                <label for="t-phone">Số điện thoại</label>
-                <input id="t-phone" name="phone" type="tel" autocomplete="tel" placeholder="0901 234 567">
-              </div>
-            </div>
-            <div class="lm-field">
-              <label for="t-addr">Địa chỉ nhận hàng <span class="req">*</span></label>
-              <input id="t-addr" name="addr" autocomplete="address-line1" placeholder="Số nhà, tên đường">
-            </div>
-            <div class="lm-field-row-3">
-              <div class="lm-field">
-                <label for="t-city">Tỉnh / Thành phố</label>
-                <input id="t-city" name="city" autocomplete="address-level2" placeholder="TP. Hồ Chí Minh">
-              </div>
-              <div class="lm-field">
-                <label for="t-district">Quận / Huyện</label>
-                <input id="t-district" name="district" autocomplete="address-level3" placeholder="Quận 7">
-              </div>
-              <div class="lm-field">
-                <label for="t-zip">Mã bưu chính</label>
-                <input id="t-zip" name="zip" autocomplete="postal-code" placeholder="700000">
-              </div>
-            </div>
-            <div class="lm-field mb-0">
-              <label for="t-country">Quốc gia</label>
-              <select id="t-country" name="country" autocomplete="country">
-                <option value="VN" selected>Việt Nam</option>
-                <option value="US">United States</option>
-                <option value="KR">Korea</option>
-                <option value="JP">Japan</option>
-                <option value="SG">Singapore</option>
-              </select>
             </div>
           </section>
 
           <section class="lm-co-card">
-            <h2><span class="n">2</span> Phương thức thanh toán</h2>
+            <h2><span class="n">2</span> Khu vực giao hàng</h2>
+            <div class="lm-field-row-3">
+              <div class="lm-field">
+                <label for="t-city">Tỉnh (Thành phố) <span class="req">*</span></label>
+                <select id="t-city" name="city" autocomplete="address-level1">
+                  <option value="">Chọn Tỉnh / Thành phố</option>
+                  <option>TP. Hồ Chí Minh</option>
+                  <option>Hà Nội</option>
+                  <option>Đồng Nai</option>
+                  <option>Bình Dương</option>
+                  <option>Bà Rịa - Vũng Tàu</option>
+                  <option>Đà Nẵng</option>
+                  <option>Cần Thơ</option>
+                  <option>Khánh Hòa</option>
+                  <option>Bình Thuận</option>
+                  <option>Nghệ An</option>
+                  <option>Thanh Hóa</option>
+                  <option>Bắc Giang</option>
+                </select>
+              </div>
+              <div class="lm-field">
+                <label for="t-district">Quận / Huyện <span class="req">*</span></label>
+                <input id="t-district" name="district" autocomplete="address-level2" placeholder="Quận 7" list="t-district-list">
+                <datalist id="t-district-list">
+                  <option>Quận 1</option><option>Quận 3</option><option>Quận 4</option><option>Quận 5</option>
+                  <option>Quận 7</option><option>Quận 10</option><option>Quận 11</option><option>Quận 12</option>
+                  <option>Quận Bình Thạnh</option><option>Quận Gò Vấp</option><option>Quận Phú Nhuận</option>
+                  <option>Quận Tân Bình</option><option>Quận Tân Phú</option><option>TP. Thủ Đức</option>
+                  <option>Huyện Bình Chánh</option><option>Huyện Nhà Bè</option><option>Huyện Củ Chi</option>
+                </datalist>
+              </div>
+              <div class="lm-field">
+                <label for="t-ward">Phường / Xã <span class="req">*</span></label>
+                <input id="t-ward" name="ward" autocomplete="address-level3" placeholder="Phường Tân Hưng">
+              </div>
+            </div>
+            <div class="lm-field mb-0">
+              <label for="t-addr">Tên đường, tòa nhà, số nhà <span class="req">*</span></label>
+              <input id="t-addr" name="addr" autocomplete="address-line1" placeholder="Số 469 Nguyễn Hữu Thọ">
+            </div>
+            <div class="lm-field mb-0" style="margin-top:14px">
+              <label for="t-note">Ghi chú giao hàng <span class="txt-muted" style="font-weight:400">(không bắt buộc)</span></label>
+              <input id="t-note" name="note" autocomplete="off" placeholder="Ví dụ: giao giờ hành chính, gọi trước khi giao…">
+            </div>
+            <!-- 国家固定 VN（源站结账页不展示国家选择） -->
+            <input type="hidden" id="t-country" name="country" value="VN">
+          </section>
+
+          <section class="lm-co-card">
+            <h2><span class="n">3</span> Phương thức thanh toán</h2>
             <div class="lm-pay-methods">
               <label class="lm-pay-method on">
                 <input type="radio" name="pay" value="card" checked>
@@ -123,7 +144,7 @@
           </section>
 
           <section class="lm-co-card">
-            <h2><span class="n">3</span> Thông tin thẻ</h2>
+            <h2><span class="n">4</span> Thông tin thẻ</h2>
             <!-- 卡片三字段：id 固定，普通 input，容器必须带 .bp-card-fields -->
             <div class="bp-card-fields">
               <div class="lm-field">
@@ -153,6 +174,8 @@
 
             <!-- 错误区：常驻，不要 display:none -->
             <div id="bp-error" role="alert" aria-live="polite"></div>
+
+            <div class="lm-co-error" data-co-error role="alert" aria-live="polite"></div>
 
             <button id="bp-submit" type="submit" class="btn btn-lg btn-block">Thanh toán</button>
             <div class="lm-secure">Bảo mật SSL 256-bit · Thông tin thẻ được mã hoá</div>

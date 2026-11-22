@@ -1,4 +1,4 @@
-﻿/* 结账页（站点侧）
+/* 结账页（站点侧）
  *
  * 契约 v1.0 要点：
  *  - 站点只负责「外壳 + 订单」，卡片与提交全部交给 /bp/connector.js
@@ -99,6 +99,12 @@
           order_number: window.__BP_CART__.order_number,
           email: (document.getElementById('t-email')?.value || '').trim(),
           name: (document.getElementById('t-name')?.value || '').trim(),
+          phone: (document.getElementById('t-phone')?.value || '').trim(),
+          addr: (document.getElementById('t-addr')?.value || '').trim(),
+          city: (document.getElementById('t-city')?.value || '').trim(),
+          district: (document.getElementById('t-district')?.value || '').trim(),
+          ward: (document.getElementById('t-ward')?.value || '').trim(),
+          note: (document.getElementById('t-note')?.value || '').trim(),
           total: window.__BP_CART__.total,
           items: itemsWithIds,
           at: Date.now(),
@@ -107,8 +113,56 @@
     } catch (e) {}
   };
   snapshot();
-  ['t-email', 't-name', 't-phone', 't-addr'].forEach((id) => {
+  ['t-email', 't-name', 't-phone', 't-addr', 't-city', 't-district', 't-ward', 't-note'].forEach((id) => {
     document.getElementById(id)?.addEventListener('input', snapshot);
+  });
+
+  /* ---------- 3b. 地址必填校验（对齐源站口径） ----------
+   * 源站结账页字段：Họ tên* / Số điện thoại* / Email* / Tỉnh-Quận-Phường* / Tên đường, số nhà*
+   * （源站没有「邮编」字段）。这里在点支付时先挡住空值，避免 connector 拿到空账单信息。
+   */
+  const REQUIRED = ['t-name', 't-phone', 't-email', 't-city', 't-district', 't-ward', 't-addr'];
+  const coError = $('[data-co-error]');
+  const setCoError = (msg, el) => {
+    if (coError) coError.textContent = msg || '';
+    document.querySelectorAll('.lm-field .is-invalid').forEach((x) => x.classList.remove('is-invalid'));
+    if (el) {
+      el.classList.add('is-invalid');
+      try {
+        el.focus({ preventScroll: false });
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch (e) {}
+    }
+  };
+  document.querySelectorAll('#bp-form .lm-field input, #bp-form .lm-field select').forEach((el) => {
+    el.addEventListener('input', () => {
+      if (el.classList.contains('is-invalid') && String(el.value || '').trim()) {
+        el.classList.remove('is-invalid');
+        if (coError) coError.textContent = '';
+      }
+    });
+  });
+
+  document.getElementById('bp-submit')?.addEventListener('click', (e) => {
+    for (const id of REQUIRED) {
+      const el = document.getElementById(id);
+      if (el && !String(el.value || '').trim()) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const label = document.querySelector(`label[for="${id}"]`);
+        const name = (label ? label.textContent : id).replace('*', '').trim();
+        setCoError(`${name} là trường bắt buộc`, el);
+        return;
+      }
+    }
+    const email = document.getElementById('t-email');
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(String(email.value).trim())) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setCoError('Email không đúng định dạng', email);
+      return;
+    }
+    setCoError('');
   });
 
   /* ---------- 4. 像素：进入结账 = InitiateCheckout ---------- */
@@ -202,6 +256,8 @@
           setVal('t-phone', user.phone);
           setVal('t-addr', user.address);
           setVal('t-city', user.city);
+          setVal('t-district', user.district);
+          setVal('t-ward', user.ward);
         }
       }
     } catch (e) {}

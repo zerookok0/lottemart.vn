@@ -1455,6 +1455,15 @@ p:last-child { margin-bottom: 0; }
 }
 #bp-error:empty { min-height: 0; margin-top: 0; }
 
+/* 站点侧地址校验提示（与 connector 的 #bp-error 分开，互不覆盖） */
+.lm-co-error { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--red); line-height: 1.45; }
+.lm-co-error:empty { display: none; }
+.lm-field .is-invalid {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px rgba(218, 41, 28, 0.12);
+}
+.lm-field .is-invalid:focus { box-shadow: 0 0 0 3px rgba(218, 41, 28, 0.2); }
+
 #bp-submit { width: 100%; }
 
 .lm-co-total {

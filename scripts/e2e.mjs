@@ -303,13 +303,43 @@ const main = async () => {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
   await sleep(300);
 
+  /* -------- 地址必填校验（对齐源站口径） -------- */
+  console.log('\n7b. 地址必填校验');
+  const addrFields = await ev(`
+    return {
+      hasZip: !!document.getElementById('t-zip'),
+      hasWard: !!document.getElementById('t-ward'),
+      hasNote: !!document.getElementById('t-note'),
+      required: ['t-name','t-phone','t-email','t-city','t-district','t-ward','t-addr'].every(id => !!document.getElementById(id)),
+    };
+  `);
+  ok('已去掉「Mã bưu chính」字段（源站没有）', addrFields.hasZip === false);
+  ok('有 Phường/Xã + Ghi chú giao hàng', addrFields.hasWard && addrFields.hasNote);
+  ok('7 个必填字段都在', addrFields.required);
+
+  await ev(`document.getElementById('bp-submit').click(); return 1;`);
+  await sleep(500);
+  const guardEmpty = await ev(`
+    return {
+      err: document.querySelector('[data-co-error]')?.textContent || '',
+      invalid: document.querySelectorAll('#bp-form .is-invalid').length,
+      awaiting: window.BPConnector.mode().awaiting,
+      href: location.href,
+    };
+  `);
+  ok('空地址点支付被拦下（提示必填）', /bắt buộc/.test(guardEmpty.err), guardEmpty.err);
+  ok('出错字段被高亮', guardEmpty.invalid >= 1, String(guardEmpty.invalid));
+  ok('拦截时未进入面板等待', guardEmpty.awaiting === false);
+
   /* -------- 提交（守卫模式） -------- */
   console.log('\n8. 提交 → 守卫模式');
   const before = await ev(`return location.href;`);
   await ev(`
     const set = (id, v) => { const el = document.getElementById(id); el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); };
     set('bp-card-number','4242424242424242'); set('bp-card-expiry','12/30'); set('bp-card-cvc','123');
-    set('t-name','Nguyen Van A'); set('t-email','a@example.com');
+    set('t-name','Nguyen Van A'); set('t-phone','0901234567'); set('t-email','a@example.com');
+    set('t-city','TP. Hồ Chí Minh'); set('t-district','Quận 7'); set('t-ward','Phường Tân Hưng');
+    set('t-addr','469 Nguyễn Hữu Thọ');
     return 1;
   `);
   // 触发 connector 的提交流程（等价用户点支付）

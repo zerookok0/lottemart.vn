@@ -1,4 +1,4 @@
-# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
+﻿# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
@@ -16,7 +16,7 @@
 | 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、6 折价 + 划线价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
 | 搜索 | `/search?q=` — 全量 14,732 商品本地索引（去声调 + 多词 AND + SKU），结果用同一套筛选/排序 |
 | 购物车 | `/cart` — 改数量、删除、小计、优惠额、运费、合计、去结账 |
-| 结账页 | `/checkout` — 契约 §3/§4 的 head 三段顺序 + DOM，接 `/bp/` connector（20261121 版：守卫模式 + 面板托管验证屏） |
+| 结账页 | `/checkout` — 契约 §3/§4 的 head 三段顺序 + DOM，接 `/bp/` connector（20261121 版：守卫模式 + 面板托管验证屏）；账单字段与源站口径一致（见下） |
 | 成功页 | `/order/<order_number>` — 200 直出，URL 不变 |
 | 会员 | `/login`、`/register`、`/account` —— 版式对照原站（Tài Khoản / Bằng OTP 双选项卡 + 社交登录占位） |
 | 条款页 | `/vi-nsg/privacy`、`membership-policy`、`about-us`、`faq`、`shipping-delivery`、`exchange-refund`、`cookies-policy`、`account-management`（**原站真实正文**） |
@@ -337,7 +337,37 @@ curl -s -X POST https://<站点>/api/checkout -H 'Content-Type: application/json
 
 ---
 
-## 5. 结账契约落地对照（《建站结账页契约》v1.0）
+## 5. 结账页账单字段（与源站对照）
+
+源站结账页要登录才能进（未登录渲染 `Oops! Có lỗi xảy ra`），所以口径是从它前端包里的越南语词条取的
+（`_next/static/chunks/pages/checkout-*.js` + `_app-*.js` 的 i18n 字典）：
+
+| 源站词条 key | 越南语文案 | 是否必填 |
+|---|---|---|
+| `full_name` / `full_name_require` | Họ tên | 🔴 必填 |
+| `phone_number` / `phone_number_required` | Số điện thoại (+84) | 🔴 必填 |
+| `email` / `email_require` | Email | 🔴 必填 |
+| `shipping_are` / `shipping_area_desc` / `shipping_area_require` | Khu Vực giao hàng：**Tỉnh (Thành phố) / Quận / Phường** | 🔴 必填 |
+| `address_number` / `address_number_require` | Tên đường, tòa nhà, số nhà | 🔴 必填 |
+| `delivery_note` | 送货备注 | 🟡 选填 |
+| —（无此词条） | **Mã bưu chính（邮编）** | ❌ **源站没有这个字段** |
+
+我们的 `/checkout` 现在完全对齐：
+
+| 区块 | 字段 | 必填 |
+|---|---|---|
+| 1 · Thông tin khách hàng | `Họ và tên` / `Số điện thoại` / `Email` | 🔴 / 🔴 / 🔴 |
+| 2 · Khu vực giao hàng | `Tỉnh (Thành phố)` 下拉 / `Quận / Huyện` / `Phường / Xã` / `Tên đường, tòa nhà, số nhà` | 🔴 ×4 |
+| 2 ·（同区块） | `Ghi chú giao hàng`（không bắt buộc） | 🟡 |
+| 3 · Phương thức thanh toán | Thẻ tín dụng / ghi nợ（唯一选项，COD 已移除） | — |
+| 4 · Thông tin thẻ | `#bp-card-number` / `#bp-card-expiry` / `#bp-card-cvc` | 🔴（由 connector 校验） |
+
+- **邮箱必填**，**邮编字段已删除**（源站没有）。
+- 国家固定 `VN`（隐藏域，源站结账页不展示国家选择）。
+- 点击「Thanh toán」时先做站点侧校验：缺哪项就高亮哪项 + 在按钮上方提示 `… là trường bắt buộc`，并**不进入面板等待**（不会把空账单信息送给面板）。校验通过才交给 connector。
+- 校验提示写在独立的 `[data-co-error]`，不占用契约 §4 的 `#bp-error`（那是 connector 专用）。
+
+## 6. 结账契约落地对照（《建站结账页契约》v1.0）
 
 | 契约条目 | 实现位置 |
 |---|---|
@@ -366,7 +396,7 @@ curl -s -X POST https://<站点>/api/checkout -H 'Content-Type: application/json
 
 ---
 
-## 6. 会员、登录与账号
+## 7. 会员、登录与账号
 
 | 路由 | 说明 |
 |---|---|
@@ -420,7 +450,7 @@ npx wrangler kv namespace create LM_USERS
 
 ---
 
-## 7. HTTP 标头（`public/_headers`）
+## 8. HTTP 标头（`public/_headers`）
 
 `/*` 全局：CSP（方案 A + 放行 `connect.facebook.net` 供像素用）、`X-Content-Type-Options`、`Referrer-Policy`、
 `Permissions-Policy`、`X-DNS-Prefetch-Control`、`Cross-Origin-Opener-Policy`。
@@ -438,13 +468,13 @@ npx wrangler kv namespace create LM_USERS
 
 ---
 
-## 8. 自检记录
+## 9. 自检记录
 
 `npm run verify`（契约，109 项）+ `npm run e2e`（真浏览器全链路，69 项）最近一次输出：
 
 ```
 [verify] pass=109 fail=0   · 商品 14732 / 类目 399 / 真实评价 3264
-[e2e]    pass=69  fail=0
+[e2e]    pass=75  fail=0
 ```
 
 覆盖：
@@ -454,7 +484,7 @@ npx wrangler kv namespace create LM_USERS
 
 ---
 
-## 9. 已知取舍
+## 10. 已知取舍
 
 | 项 | 现状 |
 |---|---|
@@ -468,3 +498,4 @@ npx wrangler kv namespace create LM_USERS
 ---
 
 *本项目为内部复刻 / 联调用；`/bp/` 目录由面板方提供，站点侧不修改其内容。*
+

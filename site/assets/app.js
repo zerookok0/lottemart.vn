@@ -321,7 +321,7 @@
     <a class="lm-card-name" href="${LM.esc(url)}">${LM.esc(name)}</a>
     <div class="lm-card-meta">
       ${rating > 0 ? `${LM.stars(rating)}<b>${rating.toFixed(1)}</b><span>(${reviews})</span>` : '<span>Chưa có đánh giá</span>'}
-      ${sold > 0 ? `<span class="dot"></span><span>Đã bán ${sold}</span>` : ''}
+      ${sold > 0 ? `<span class="dot"></span><span class="lm-card-sold">Đã bán ${sold}</span>` : ''}
     </div>
     <div class="lm-card-price">
       <span class="off">-${off}%</span>

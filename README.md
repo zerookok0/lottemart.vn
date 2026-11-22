@@ -76,7 +76,26 @@
 > 集合页默认使用**自己的排序**（不会被 "Phổ biến" 覆盖），所以 8 个入口看到的是 8 份不同的榜单 —— 之前全部相同是这处被统一排序覆盖了。
 
 - **首页区块标题**按源站文案映射（`Mua Giá Hời Hơn` / `Khuyến mãi trong tháng` / `Giá tốt mỗi ngày` / `Chỉ trong tuần này` / `Sự kiện đặc biệt` / `Hàng mới` / `Nổi bật trong tuần` / `Mua sắm tiện lợi` / `Ưu đãi từ đối tác`），去掉了接口里的 `_VN` 后缀与 `Product special event 1/2` 占位，并把同名的两个 event 合并成一行。
-- **主视觉**：源站 banner 实际是 1200×340，原来用 2.06:1 + `object-fit: cover` 会把左右文字裁掉（看起来像图坏了）。现在整幅轮播按 3.53:1 原比例铺满，移动端 16:9，不再裁切。
+- **主视觉**：整幅轮播（不再有左右两块拼贴）。源站 banner 是 1200×340，桌面按 3.53:1 原比例铺满（零裁切）；移动端用源站给的 `app_image`（750×400）走 `<picture media>` 切换，按 750:400 定高，图片没加载完也不会塌陷。点任意一张都落真实类目页。
+- **轮播跳转**（源站 banner 的 `template-N/xxx` 落地页我们没有，解析时统一换成语义相同的类目页，绝不 404）：
+
+| 源站 link | 落到 |
+|---|---|
+| `category/<id>` | 对应类目页（如 `THIT-HEO` → `/vi-nsg/category/thit-heo-c276`） |
+| `template-3/fresh-food` | `/vi-nsg/category/rau-cu-c3` |
+| `template-2/the-gioi-sua` | `/vi-nsg/category/che-pham-tu-sua-c143` |
+| `template-3/beauty-care` | `/vi-nsg/category/suc-khoe-lam-dep-c314` |
+| `template-1/unilever` / `cham-soc-nha-cua` | `/vi-nsg/category/hoa-pham-ve-sinh-c351` |
+| 其它 / 空 | `/vi-nsg/collection/uu-dai-hot` |
+
+- **移动端细节**（≤768 / ≤480）：
+  - 顶栏搜索收成图标（点进 `/search`），导航条横向滑动并带右侧渐隐提示；
+  - 首页区块标题独占一行、选项卡换行后可横滑，不再压住标题；
+  - 商品卡评分行只留 `★ 4.8 (170)`，"Đã bán xxx" 在 ≤480 隐藏（避免被截断）；
+  - 卡片收藏心形常显（移动端没有 hover）；
+  - 面包屑单行横滑、去掉结尾多余的分隔符；
+  - 类目页「Bộ lọc / Sắp xếp」整行自适应，筛选抽屉宽 `min(86vw, 320px)`、类目名不换行不截断；
+  - 375 宽实测 `scrollWidth == innerWidth`，无横向溢出。
 
 - **头部两行**：① 红色 LOTTE Mart 标 + 中间搜索框 + 右侧图标（购物车 / 账号 / 通知 / 语言 VN·KR·EN）；② `Danh Mục` 红按钮（3 级类目抽屉）+ 8 项导航（含 `Giao 60 PHÚT` 的 `Mới` 角标）。
 - **右侧悬浮条**：Đăng nhập / Giao hàng / Giỏ hàng / Đã xem gần đây / Trợ giúp / Trên cùng（≤1080px 隐藏）。

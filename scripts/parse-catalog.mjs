@@ -477,12 +477,42 @@ const cardsOf = (arr) =>
 
 const zoneByKey = new Map((homeRaw.data || []).map((z) => [z.zone, z]));
 
+/* 源站 banner 跳转：category/<id> → 我们的类目页；template-N/<slug> → 语义相近的类目；
+ * 其它一律回落到促销集合，保证轮播点开不会 404 */
+const TEMPLATE_CAT = {
+  'fresh-food': '3',
+  'gia-vi-nau-an': '200',
+  'the-gioi-sua': '143',
+  'beauty-care': '314',
+  'cham-soc-nha-cua': '351',
+  'unilever': '351',
+  'healthy-food': '261',
+  'pet-shop': '431',
+  'danh-cho-mua-nong': '122',
+  'sinh-nhat-lotte': '111',
+};
+const resolveBannerLink = (raw) => {
+  const s = String(raw || '').replace(/^\/+/, '').trim();
+  if (!s) return '/vi-nsg/collection/uu-dai-hot';
+  const mCat = s.match(/^category\/(\d+)/);
+  if (mCat) {
+    const rec = catMap.get(mCat[1]);
+    return rec ? rec.url : '/vi-nsg/collection/ban-chay';
+  }
+  const mTpl = s.match(/^template-[^/]*\/?(.*)$/);
+  const slug = (mTpl ? mTpl[1] : s).replace(/\/+$/, '');
+  const id = TEMPLATE_CAT[slug];
+  if (id && catMap.get(id)) return catMap.get(String(id)).url;
+  return '/vi-nsg/collection/uu-dai-hot';
+};
+
 const heroBanners = (bannersRaw.data || [])
   .filter((b) => b.is_active !== false)
   .map((b) => ({
     title: b.title || b.banner_title || '',
     img: b.image?.image_web || b.app_image || '',
-    link: b.image?.link_url ? `/vi-nsg/${String(b.image.link_url).replace(/^\/+/, '')}` : '/',
+    appImg: b.app_image || '',
+    link: resolveBannerLink(b.image?.link_url),
     type: b.image?.type_banner || '',
   }))
   .filter((b) => b.img);
@@ -563,7 +593,8 @@ const home = {
   promoBanners: ((zoneByKey.get('shopping_life')?.banners) || []).slice(0, 2).map((b) => ({
     title: b.title || '',
     img: b.image?.image_web || b.app_image || '',
-    link: b.image?.link_url ? `/vi-nsg/${String(b.image.link_url).replace(/^\/+/, '')}` : '/',
+    appImg: b.app_image || '',
+    link: resolveBannerLink(b.image?.link_url || b.link_url),
   })),
   popup: (() => {
     const p = (popupRaw.data?.items || []).find((x) => x.product) || null;
@@ -592,6 +623,7 @@ const totalSize = fs
   .reduce((n, f) => n + fs.statSync(path.join(DATA, f)).size, 0);
 
 log(`[parse] 完成 → data/ ${(totalSize / 1e6).toFixed(1)} MB`);
+
 
 
 

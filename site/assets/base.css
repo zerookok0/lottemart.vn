@@ -535,6 +535,7 @@ p:last-child { margin-bottom: 0; }
   aspect-ratio: 1200 / 340;
 }
 .lm-hero-slide { display: block; width: 100%; height: 100%; }
+.lm-hero-slide picture { display: block; width: 100%; height: 100%; }
 .lm-hero-slide img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .lm-hero-arrow {
   position: absolute;
@@ -2074,17 +2075,41 @@ p:last-child { margin-bottom: 0; }
   .lm-search-mobile { display: grid; }
   .lm-hright .lm-hbtn { width: 34px; height: 34px; }
   .lm-hright .lm-hbtn .ic { width: 19px; height: 19px; }
-  .lm-nav { height: 48px; gap: 0; }
+  .lm-nav { position: relative; height: 48px; gap: 0; }
+  .lm-nav::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff 78%);
+  }
   .lm-cate-btn { margin-right: 8px; height: 36px; padding: 0 12px; font-size: 13px; }
-  .lm-nav-list a { padding: 0 9px; font-size: 13px; }
-  .lm-hero { grid-template-columns: 1fr; }
-  .lm-hero-main { aspect-ratio: 16 / 9; }
-  .lm-hero-arrow { width: 32px; height: 32px; opacity: 1; }
+  .lm-nav-list a { padding: 0 8px; font-size: 12.5px; }
+  /* 移动端主视觉：用源站 750 宽的 app 图，按 750×400 定高（图片没加载完也不会塌陷） */
+  .lm-hero { margin-top: 10px; }
+  .lm-hero-main { aspect-ratio: 750 / 400; }
+  .lm-hero-slide,
+  .lm-hero-slide picture { height: 100%; }
+  .lm-hero-slide img { height: 100%; width: 100%; object-fit: cover; object-position: center; }
+  .lm-hero-arrow { width: 30px; height: 30px; opacity: 1; }
   .lm-quick { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .lm-quick a { flex-direction: column; text-align: center; gap: 5px; font-size: 11.5px; padding: 10px 4px; }
   .lm-coupons { grid-template-columns: 1fr; }
   .lm-banners { grid-template-columns: 1fr; }
   .lm-sec-title { font-size: 17px; }
+  .lm-sec-head { flex-wrap: wrap; gap: 8px; }
+  .lm-sec-tabs { width: 100%; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; padding-bottom: 2px; }
+  .lm-sec-tabs::-webkit-scrollbar { display: none; }
+  .lm-crumb { overflow-x: auto; white-space: nowrap; scrollbar-width: none; padding-right: 4px; }
+  .lm-crumb::-webkit-scrollbar { display: none; }
+  .lm-cat-head { gap: 8px; }
+  .lm-sort { width: 100%; justify-content: space-between; gap: 6px; }
+  .lm-sort select { flex: 1 1 auto; min-width: 0; width: auto; }
+  .lm-quick a { font-size: 11.5px; line-height: 1.25; }
+  .lm-quick span { overflow-wrap: anywhere; }
   .lm-grid,
   .lm-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .lm-rail-5,
@@ -2126,7 +2151,12 @@ p:last-child { margin-bottom: 0; }
   .lm-card-meta { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .lm-card-meta > * { flex: none; }
   .lm-card-meta b { font-size: 10.5px; }
+  .lm-card-meta .lm-card-sold,
+  .lm-card-meta .dot { display: none; }
+  .lm-card-fav { opacity: 1; }
   .lm-sec-tabs { width: 100%; overflow-x: auto; flex-wrap: nowrap; }
+  .lm-sec-title { font-size: 16px; }
+  .lm-quick a { padding: 9px 4px; }
   .lm-promo-modal { padding: 0; align-items: flex-end; }
   .lm-promo { width: 100%; max-height: 92dvh; border-radius: 18px 18px 0 0; }
   .lm-promo-hero { min-height: 268px; padding: 14px 16px 0; }
@@ -2143,4 +2173,5 @@ p:last-child { margin-bottom: 0; }
   .lm-header, .lm-footer, .lm-rail, .lm-top-btn, .lm-toast-wrap { display: none !important; }
   body { background: #fff; }
 }
+
 

@@ -383,8 +383,14 @@ ${
     document.title = `${title} | LOTTE Mart Việt Nam`;
     const crumbBox = $('[data-crumb]');
     if (crumbBox) {
+      // 最后一个不带分隔符，当前页用 .cur（避免 "A / B /" 这种断尾）
       crumbBox.innerHTML = crumb
-        .map((c, i) => (c.url ? `<a href="${esc(c.url)}">${esc(c.name)}</a><span class="sep">/</span>` : `<span class="cur">${esc(c.name)}</span>`))
+        .map((c, i) => {
+          const isLast = i === crumb.length - 1;
+          const sep = isLast ? '' : '<span class="sep">/</span>';
+          const label = isLast || !c.url ? `<span class="cur">${esc(c.name)}</span>` : `<a href="${esc(c.url)}">${esc(c.name)}</a>`;
+          return label + sep;
+        })
         .join('');
     }
 

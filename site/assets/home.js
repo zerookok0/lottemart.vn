@@ -60,7 +60,10 @@
         .map(
           (b, i) =>
             `<a href="${esc(b.link)}" class="lm-hero-slide" data-slide="${i}" style="display:${i === 0 ? 'block' : 'none'}">
-              <img src="${esc(b.img)}" alt="${esc(b.title)}" loading="${i === 0 ? 'eager' : 'lazy'}">
+              <picture>
+                ${b.appImg ? `<source media="(max-width: 768px)" srcset="${esc(b.appImg)}">` : ''}
+                <img src="${esc(b.img)}" alt="${esc(b.title)}" loading="${i === 0 ? 'eager' : 'lazy'}">
+              </picture>
             </a>`
         )
         .join('')}

@@ -10,7 +10,7 @@
 
   const NAV = [
     { label: 'Trang chủ', href: '/' },
-    { label: 'Giao 60 PHÚT', href: '/vi-nsg/collection/giao-60-phut', badge: 'Mới' },
+    { label: 'Giao 60 PHÚT', href: '/vi-nsg/category/giao-hang-sieu-toc-c497', badge: 'Mới' },
     { label: 'Đi Chợ Tại Nhà', href: '/vi-nsg/collection/di-cho-tai-nha' },
     { label: 'Ưu Đãi Hot', href: '/vi-nsg/collection/uu-dai-hot' },
     { label: 'Khuyến Mãi', href: '/vi-nsg/collection/khuyen-mai' },
@@ -311,16 +311,32 @@
       const menu = await LM.data.menu();
       const byId = new Map((menu.nodes || []).map((n) => [String(n.id), n]));
       const roots = (menu.roots || []).map((id) => byId.get(String(id))).filter(Boolean);
+      const specials = (menu.specials || []).filter(Boolean);
 
-      l1.innerHTML = roots
-        .map(
-          (r) => `<li data-l1="${r.id}">
+      l1.innerHTML =
+        specials
+          .map(
+            (s) => `<li data-l1="${s.id}">
+  <a href="${s.url}">${esc(s.name)}<span class="tag tag-gray" style="margin-left:auto;height:18px;font-size:10px">${s.count || ''}</span></a>
+</li>`
+          )
+          .join('') +
+        roots
+          .map(
+            (r) => `<li data-l1="${r.id}">
   <a href="${r.url}">${esc(r.name)}${icon('chevron')}</a>
 </li>`
-        )
-        .join('');
+          )
+          .join('');
 
       bodies.innerHTML =
+        specials
+          .map(
+            (s) => `<div class="lm-mega-body" data-body="${s.id}">
+  <div class="lm-mega-group"><a href="${s.url}">Xem tất cả ${esc(s.name)} (${s.count || 0} sản phẩm)</a></div>
+</div>`
+          )
+          .join('') +
         roots
           .map((r) => {
             const l2 = (menu.nodes || []).filter((n) => String(n.parent_id) === String(r.id));

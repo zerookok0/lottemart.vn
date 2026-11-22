@@ -10,8 +10,9 @@
 
 | 项 | 说明 |
 |---|---|
-| 首页 | `/` — 主视觉轮播 + 6 个快捷入口 + 优惠券条 + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
-| 类目页 | `/vi-nsg/category/<url_key>-c<id>` — 26 个一级 / 399 个类目节点，左筛选（类目树 / 配送 / 星级 / 品牌 / 价格区间 / 清除）+ 排序 + 分页 + 加购 |
+| 首页 | `/` — 主视觉轮播（整幅，按源站 banner 1200×340 比例不裁切，带左右箭头 + 圆点）+ 6 个快捷入口 + 优惠券条 + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
+| 类目页 | `/vi-nsg/category/<url_key>-c<id>` — 26 个一级 / 399 个类目节点 + **1 个源站虚拟类目「Giao 60 Phút」**，左筛选（Nổi bật / 类目树 / 配送 / 星级 / 品牌 / 价格区间 / 清除）+ 排序 + 分页 + 加购 |
+| 集合页 | `/vi-nsg/collection/<key>` — 8 个顶部导航集合，各自独立筛选与排序（详见下表），不再是同一份榜单 |
 | 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、6 折价 + 划线价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
 | 搜索 | `/search?q=` — 全量 14,732 商品本地索引（去声调 + 多词 AND + SKU），结果用同一套筛选/排序 |
 | 购物车 | `/cart` — 改数量、删除、小计、优惠额、运费、合计、去结账 |
@@ -58,6 +59,24 @@
 响应式：桌面居中卡片 `min(94vw, 520px)`；≤480px 变成底部抽屉（`border-radius: 18px 18px 0 0`，`max-height: 92dvh`），字号用 `clamp()` 连续缩放，CTA 与倒计时始终在首屏内。
 
 ## 版式与配置要点
+
+- **顶部导航 → 落地目标**（对齐源站）：
+
+| 导航 | 目标 | 数据来源 |
+|---|---|---|
+| Giao 60 PHÚT（Mới） | `/vi-nsg/category/giao-hang-sieu-toc-c497` | 源站虚拟类目（接口返回 0）→ 用「带 `Giao siêu tốc` 促销标」的 **658 个商品**还原 |
+| Đi Chợ Tại Nhà | `/vi-nsg/collection/di-cho-tai-nha` | 生鲜一级类目（Rau Củ / Thịt / Thủy sản / Trứng / Trái Cây / Đông Lạnh / Sơ Chế） |
+| Ưu Đãi Hot | `/vi-nsg/collection/uu-dai-hot` | 评分 ≥ 4.8 且评论 ≥ 3，按评分排 |
+| Khuyến Mãi | `/vi-nsg/collection/khuyen-mai` | 带 coupon / 降价促销标的商品，按评论数排 |
+| Bán Chạy | `/vi-nsg/collection/ban-chay` | 按销量排 |
+| Hàng Mới | `/vi-nsg/collection/hang-moi` | 按商品 id 倒序（新入库在前） |
+| Sự Kiện Nổi Bật | `/vi-nsg/collection/su-kien` | 评论数 ≥ 8 的热门品 |
+| Đặt Hàng Nhanh | `/vi-nsg/collection/dat-hang-nhanh` | 库存 > 100 的现货，按库存排 |
+
+> 集合页默认使用**自己的排序**（不会被 "Phổ biến" 覆盖），所以 8 个入口看到的是 8 份不同的榜单 —— 之前全部相同是这处被统一排序覆盖了。
+
+- **首页区块标题**按源站文案映射（`Mua Giá Hời Hơn` / `Khuyến mãi trong tháng` / `Giá tốt mỗi ngày` / `Chỉ trong tuần này` / `Sự kiện đặc biệt` / `Hàng mới` / `Nổi bật trong tuần` / `Mua sắm tiện lợi` / `Ưu đãi từ đối tác`），去掉了接口里的 `_VN` 后缀与 `Product special event 1/2` 占位，并把同名的两个 event 合并成一行。
+- **主视觉**：源站 banner 实际是 1200×340，原来用 2.06:1 + `object-fit: cover` 会把左右文字裁掉（看起来像图坏了）。现在整幅轮播按 3.53:1 原比例铺满，移动端 16:9，不再裁切。
 
 - **头部两行**：① 红色 LOTTE Mart 标 + 中间搜索框 + 右侧图标（购物车 / 账号 / 通知 / 语言 VN·KR·EN）；② `Danh Mục` 红按钮（3 级类目抽屉）+ 8 项导航（含 `Giao 60 PHÚT` 的 `Mới` 角标）。
 - **右侧悬浮条**：Đăng nhập / Giao hàng / Giỏ hàng / Đã xem gần đây / Trợ giúp / Trên cùng（≤1080px 隐藏）。

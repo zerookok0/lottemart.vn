@@ -51,23 +51,26 @@
     if (!main) return;
 
     const hero = (home.hero || []).slice(0, 8);
-    const side = hero[1] || hero[0] || null;
-    const mainBanners = hero.length ? hero : [];
 
     const html = [];
     html.push(`<div class="container">
   <div class="lm-hero">
-    ${side ? `<a class="lm-hero-side" href="${esc(side.link)}"><img src="${esc(side.img)}" alt="${esc(side.title)}" loading="eager"></a>` : '<div class="lm-hero-side"></div>'}
     <div class="lm-hero-main" data-hero>
-      ${mainBanners
+      ${hero
         .map(
           (b, i) =>
-            `<a href="${esc(b.link)}" class="lm-hero-slide" data-slide="${i}" style="display:${i === 0 ? 'block' : 'none'};width:100%;height:100%">
+            `<a href="${esc(b.link)}" class="lm-hero-slide" data-slide="${i}" style="display:${i === 0 ? 'block' : 'none'}">
               <img src="${esc(b.img)}" alt="${esc(b.title)}" loading="${i === 0 ? 'eager' : 'lazy'}">
             </a>`
         )
         .join('')}
-      <div class="lm-hero-dots">${mainBanners
+      ${
+        hero.length > 1
+          ? `<button class="lm-hero-arrow prev" type="button" data-hero-prev aria-label="Trước">${LM.icon('chevronLeft')}</button>
+             <button class="lm-hero-arrow next" type="button" data-hero-next aria-label="Sau">${LM.icon('chevron')}</button>`
+          : ''
+      }
+      <div class="lm-hero-dots">${hero
         .map((_, i) => `<button type="button" class="${i === 0 ? 'active' : ''}" data-dot="${i}" aria-label="Ảnh ${i + 1}"></button>`)
         .join('')}</div>
     </div>
@@ -125,6 +128,7 @@
     let idx = 0;
     let timer = 0;
     const go = (n) => {
+      if (!slides.length) return;
       idx = (n + slides.length) % slides.length;
       slides.forEach((s, i) => (s.style.display = i === idx ? 'block' : 'none'));
       dots.forEach((d, i) => d.classList.toggle('active', i === idx));
@@ -139,6 +143,14 @@
         auto();
       })
     );
+    document.querySelector('[data-hero-prev]')?.addEventListener('click', () => {
+      go(idx - 1);
+      auto();
+    });
+    document.querySelector('[data-hero-next]')?.addEventListener('click', () => {
+      go(idx + 1);
+      auto();
+    });
     if (slides.length > 1) auto();
 
     // 选项卡排序

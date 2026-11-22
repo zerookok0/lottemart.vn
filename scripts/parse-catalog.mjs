@@ -371,6 +371,28 @@ for (const [cid, arr] of catProducts) {
   if (rec) rec.count = arr.length;
 }
 
+/* ---------------------------------------------------------------- 源站「Giao 60 Phút」虚拟类目
+ * 这是源站的营销类目（/vi-nsg/category/giao-hang-sieu-toc-c497），
+ * categories/<id>/products 接口返回 0，实际等价于「带 Giao siêu tốc 促销标」的商品。
+ */
+const expressItems = items.filter((p) => (p.labels || []).some((l) => /giao/i.test(l.name || '')));
+const expressCards = expressItems.map(card).sort((a, b) => b.s - a.s);
+if (expressCards.length) {
+  writeJson(path.join(DATA, 'cat', '497.json'), { id: '497', total: expressCards.length, items: expressCards });
+  catMap.set('497', {
+    id: '497',
+    name: 'Giao 60 Phút',
+    url_key: 'giao-hang-sieu-toc',
+    level: 1,
+    parent_id: '',
+    path: '497',
+    path_formatted: 'Giao 60 Phút',
+    url: '/vi-nsg/category/giao-hang-sieu-toc-c497',
+    count: expressCards.length,
+  });
+  log(`[parse] Giao 60 Phút（虚拟类目）${expressCards.length} 个商品`);
+}
+
 /* ---------------------------------------------------------------- 详情分片 */
 const shardMap = new Map();
 for (const p of items) {
@@ -407,7 +429,7 @@ for (const p of items) {
 for (const [k, obj] of shardMap) writeJson(path.join(DATA, 'p', `${k}.json`), obj);
 for (const [k, obj] of reviewsByShard) writeJson(path.join(DATA, 'reviews', `${k}.json`), obj);
 
-/* ---------------------------------------------------------------- 搜索索引 */
+/* ---------------------------------------------------------------- 搜索索引（集合页也用它排序/筛选） */
 const search = items
   .map((p) => ({
     i: p.id,
@@ -418,8 +440,13 @@ const search = items
     l: p.list,
     r: p.rating,
     rv: p.reviews,
+    s: p.sold,
+    st: p.stock,
     c: p.catId,
+    rc: p.pathIds[0] || p.catId,
     cn: p.catName,
+    br: p.brand,
+    b: p.labels[0]?.name || '',
     k: slug(`${p.name} ${p.sku}`),
   }))
   .sort((a, b) => b.rv - a.rv);
@@ -430,7 +457,11 @@ log(`[parse] search.json ${(fs.statSync(path.join(DATA, 'search.json')).size / 1
 const menu = [...catMap.values()]
   .filter((c) => c.count > 0 || roots.includes(c.id))
   .map((c) => ({ ...c }));
-writeJson(path.join(DATA, 'menu.json'), { roots, nodes: menu });
+const specials = ['497']
+  .map((id) => catMap.get(id))
+  .filter(Boolean)
+  .map((c) => ({ id: c.id, name: c.name, url: c.url, count: c.count }));
+writeJson(path.join(DATA, 'menu.json'), { roots, nodes: menu, specials });
 
 /* ---------------------------------------------------------------- 首页 */
 const homeRaw = JSON.parse(fs.readFileSync(path.join(RAW, 'home', 'zones.json'), 'utf8'));
@@ -465,12 +496,27 @@ const coupons = ((zoneByKey.get('home_coupon_zone')?.coupon_list) || []).slice(0
   left: Math.max(0, (Number(c.limit) || 0) - (Number(c.total_used) || 0)),
 }));
 
+/* 首页区块标题：源站用的是排版标题，接口给的 zone_name 带 _VN 后缀 / 英文占位，
+ * 这里映射成源站实际展示的越南语标题（对上首页截图） */
+const HOME_TITLES = {
+  today_check: 'Mua Giá Hời Hơn',
+  promo: 'Khuyến mãi trong tháng',
+  md_picks_best_price: 'Giá tốt mỗi ngày',
+  md_picks_only_for_this_week: 'Chỉ trong tuần này',
+  md_picks_event1: 'Sự kiện đặc biệt',
+  md_picks_event2: 'Sự kiện đặc biệt',
+  Home_Just_arrived: 'Hàng mới',
+  Home_Weekly_Best: 'Nổi bật trong tuần',
+  shopping_life: 'Mua sắm tiện lợi',
+  brand_on: 'Ưu đãi từ đối tác',
+};
+
 const section = (zoneKey, opts = {}) => {
   const z = zoneByKey.get(zoneKey);
   if (!z) return null;
   return {
     key: zoneKey,
-    title: z.zone_name || z.title_name || zoneKey,
+    title: HOME_TITLES[zoneKey] || String(z.zone_name || z.title_name || zoneKey).replace(/_VN$/, ''),
     titleImage: z.title_image || '',
     url: z.url_link ? `/vi-nsg/${String(z.url_link).replace(/^\/+/, '')}` : '',
     items: cardsOf(z.items),
@@ -479,26 +525,41 @@ const section = (zoneKey, opts = {}) => {
 };
 
 const mdPicks = zoneByKey.get('md_picks');
+const rawSections = [
+  section('today_check', { tabs: ['Nổi bật', 'Đánh giá', 'Giá thấp', 'Giá cao'] }),
+  section('promo'),
+  ...((mdPicks?.zones || [])
+    .filter((z) => (z.items || []).length)
+    .map((z) => ({
+      key: z.zone,
+      title: HOME_TITLES[z.zone] || String(z.title_name || z.zone_name || '').replace(/_VN$/, ''),
+      titleImage: z.title_image || '',
+      url: z.url_link ? `/vi-nsg/${String(z.url_link).replace(/^\/+/, '')}` : '',
+      items: cardsOf(z.items),
+    }))),
+  section('Home_Just_arrived'),
+  section('Home_Weekly_Best'),
+  section('shopping_life'),
+  section('brand_on'),
+].filter((s) => s && s.items.length);
+
+// 同名区块合并（md_picks 的 event1 / event2 在源站是同一行标题）
+const mergedSections = [];
+for (const s of rawSections) {
+  const hit = mergedSections.find((x) => x.title === s.title);
+  if (hit) {
+    const seen = new Set(hit.items.map((i) => String(i.id)));
+    hit.items = hit.items.concat(s.items.filter((i) => !seen.has(String(i.id)))).slice(0, 30);
+    hit.key = `${hit.key}+${s.key}`;
+  } else {
+    mergedSections.push({ ...s });
+  }
+}
+
 const home = {
   hero: heroBanners,
   coupons,
-  sections: [
-    section('today_check', { tabs: ['Nổi bật', 'Đánh giá', 'Giá thấp', 'Giá cao'] }),
-    section('promo'),
-    ...((mdPicks?.zones || [])
-      .filter((z) => (z.items || []).length)
-      .map((z) => ({
-        key: z.zone,
-        title: z.title_name || z.zone_name || '',
-        titleImage: z.title_image || '',
-        url: z.url_link ? `/vi-nsg/${String(z.url_link).replace(/^\/+/, '')}` : '',
-        items: cardsOf(z.items),
-      }))),
-    section('Home_Just_arrived'),
-    section('Home_Weekly_Best'),
-    section('shopping_life'),
-    section('brand_on'),
-  ].filter((s) => s && s.items.length),
+  sections: mergedSections,
   promoBanners: ((zoneByKey.get('shopping_life')?.banners) || []).slice(0, 2).map((b) => ({
     title: b.title || '',
     img: b.image?.image_web || b.app_image || '',

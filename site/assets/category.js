@@ -10,6 +10,7 @@
     items: [],
     page: 1,
     sort: 'popular',
+    baseSort: null,
     cats: new Set(),
     delivery: '',
     rating: 0,
@@ -68,6 +69,19 @@
 
     side.innerHTML = `
 <button class="lm-side-clear" type="button" data-side-close style="margin:0 0 12px">← Đóng bộ lọc</button>
+${
+  (menu.specials || []).length
+    ? `<div class="lm-fgroup">
+  <h3>Nổi bật</h3>
+  ${menu.specials
+    .map(
+      (s) =>
+        `<label class="lm-fitem"><input type="radio" name="fcat" value="${s.id}" ${String(s.id) === String(catId) ? 'checked' : ''}><span class="box"></span><span class="lbl">${esc(s.name)}</span><span class="cnt">${s.count || 0}</span></label>`
+    )
+    .join('')}
+</div>`
+    : ''
+}
 <div class="lm-fgroup">
   <h3>Danh mục</h3>
   <label class="lm-fitem"><input type="radio" name="fcat" value="" ${!catId ? 'checked' : ''}><span class="box"></span><span class="lbl">Tất cả</span></label>
@@ -223,7 +237,10 @@ ${
     if (state.max) list = list.filter((p) => Number(p.p) <= state.max);
     if (state.delivery === 'fast') list = list.filter((p) => Number(p.s) > 40);
     if (state.delivery === 'std') list = list.filter((p) => Number(p.s) <= 40);
-    list.sort(SORTS[state.sort] ? SORTS[state.sort][1] : SORTS.popular[1]);
+    // 集合页（Giao 60 PHÚT / Ưu Đãi Hot / Hàng Mới …）默认用它自己的排序，
+    // 否则会被 "popular" 统一成同一份榜单，看起来像重复
+    const cmp = state.sort === 'popular' && state.baseSort ? state.baseSort : SORTS[state.sort] ? SORTS[state.sort][1] : SORTS.popular[1];
+    list.sort(cmp);
     state.items = list;
     renderGrid();
   };
@@ -302,19 +319,43 @@ ${
       crumb = [{ name: 'Trang chủ', url: '/' }, { name: 'Tìm kiếm' }];
     } else if (key) {
       const search = await LM.data.search();
-      const base = search.map((p) => ({ id: p.i, n: p.n, u: p.u, im: p.im, p: p.p, l: p.l, r: p.r, rv: p.rv, s: p.s, c: p.c, cn: p.cn, br: '' }));
+      const base = search.map((p) => ({
+        id: p.i,
+        n: p.n,
+        u: p.u,
+        im: p.im,
+        p: p.p,
+        l: p.l,
+        r: p.r,
+        rv: p.rv,
+        s: p.s,
+        st: p.st,
+        b: p.b,
+        c: p.c,
+        rc: p.rc || p.c,
+        cn: p.cn,
+        br: p.br || '',
+      }));
+      const FRESH = new Set(['3', '266', '495', '285', '303', '167', '506']);
       const map = {
-        'giao-60-phut': ['Giao 60 PHÚT', (x) => x.s > 0, (a, b) => b.r - a.r],
-        'di-cho-tai-nha': ['Đi Chợ Tại Nhà', () => true, (a, b) => b.s - a.s],
-        'uu-dai-hot': ['Ưu Đãi Hot', () => true, (a, b) => b.p / b.l - a.p / a.l],
-        'khuyen-mai': ['Khuyến Mãi', () => true, (a, b) => b.p / b.l - a.p / a.l],
+        // 「Giao 60 Phút」在源站是虚拟类目 = 带 Giao siêu tốc 促销标的商品
+        'giao-60-phut': ['Giao 60 PHÚT', (x) => /giao/i.test(x.b || ''), (a, b) => b.r - a.r || b.s - a.s],
+        'di-cho-tai-nha': ['Đi Chợ Tại Nhà', (x) => FRESH.has(String(x.rc)), (a, b) => b.s - a.s],
+        'uu-dai-hot': ['Ưu Đãi Hot', (x) => Number(x.r) >= 4.8 && Number(x.rv) >= 3, (a, b) => b.r - a.r || b.rv - a.rv],
+        'khuyen-mai': ['Khuyến Mãi', (x) => /coupon|giá rẻ|sale/i.test(x.b || ''), (a, b) => b.rv - a.rv],
         'ban-chay': ['Bán Chạy', () => true, (a, b) => b.s - a.s],
         'hang-moi': ['Hàng Mới', () => true, (a, b) => Number(b.i) - Number(a.i)],
-        'su-kien': ['Sự Kiện Nổi Bật', () => true, (a, b) => b.rv - a.rv],
-        'dat-hang-nhanh': ['Đặt Hàng Nhanh', () => true, (a, b) => b.s - a.s],
+        'su-kien': ['Sự Kiện Nổi Bật', (x) => Number(x.rv) >= 8, (a, b) => b.rv - a.rv],
+        'dat-hang-nhanh': ['Đặt Hàng Nhanh', (x) => Number(x.st) > 100, (a, b) => b.st - a.st],
       };
       const conf = map[key] || ['Sản phẩm', () => true, (a, b) => b.s - a.s];
-      items = base.filter(conf[1]).sort(conf[2]).slice(0, 240);
+      const seen = new Set();
+      items = base
+        .filter(conf[1])
+        .filter((x) => (seen.has(String(x.id)) ? false : seen.add(String(x.id))))
+        .sort(conf[2])
+        .slice(0, 240);
+      state.baseSort = conf[2];
       title = conf[0];
       crumb = [{ name: 'Trang chủ', url: '/' }, { name: conf[0] }];
     } else if (catId) {

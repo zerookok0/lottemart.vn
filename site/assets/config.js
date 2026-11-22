@@ -4,9 +4,9 @@
 window.LM_CONFIG = {
   /* ---- Facebook Pixel ----
    * 填上 Pixel ID 才会注入 fbq；留空 = 完全不打点（页面行为不受影响）
-   * 例：fbPixelId: '1234567890123456'
+   * 当前：1199367782421489（pixel.js 里也留了同一个值做兜底）
    */
-  fbPixelId: '',
+  fbPixelId: '1199367782421489',
 
   /* 逐项开关（true/省略 = 开） */
   pixelEvents: {

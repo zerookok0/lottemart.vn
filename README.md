@@ -241,24 +241,35 @@ npm run info                     # 重新生成条款页
 
 ## 4. 部署到 Cloudflare Pages
 
-### 先推到 GitHub
+### 仓库（已推送）
 
-```bash
-git init
-git add .
-git commit -m "Lotte Mart VN storefront clone: catalog + 40% off cart + /bp checkout"
-git branch -M main
-git remote add origin https://github.com/<账号>/<仓库名>.git
-git push -u origin main
+```
+https://github.com/zerookok0/lottemart.vn
 ```
 
-入库内容：`site/ data/ public/ functions/ bp/ scripts/ preview/` + 配置（约 85 MB，最大单文件 `data/search.json` 4.7 MB）。
+```bash
+git clone https://github.com/zerookok0/lottemart.vn.git
+cd lottemart.vn
+npm run build        # 生成 dist/
+```
+
+重新推代码：
+
+```bash
+git add .
+git commit -m "update"
+git push
+```
+
+入库内容：`site/ data/ public/ functions/ bp/ scripts/ preview/` + 配置（700 个文件，约 95 MB，最大单文件 `data/search.json` 4.7 MB）。
 已被 `.gitignore` 排除：`raw/`（抓取原件 400+ MB）、`dist/`、`_recon/`、`node_modules/`、`.wrangler/`。
 
 ### Pages 项目设置
 
 | 设置项 | 值 |
 |---|---|
+| 连接方式 | GitHub → 选 `zerookok0/lottemart.vn` |
+| Project name | `lottemart-vn`（随意，会变成 `<name>.pages.dev`） |
 | Framework preset | `None` |
 | Build command | `npm run build` |
 | Build output directory | `dist` |
@@ -268,10 +279,12 @@ git push -u origin main
 命令行也能推：
 
 ```bash
-npx wrangler pages deploy dist --project-name <项目名>
+npx wrangler pages deploy dist --project-name lottemart-vn
 ```
 
-`wrangler.toml` 已写 `pages_build_output_dir = "dist"`。
+`wrangler.toml` 已写 `pages_build_output_dir = "dist"` 与 `name = "lottemart-vn"`。
+
+> 仓库里没有 `package.json` 依赖，`npm run build` 只是跑 `node scripts/build.mjs`，不会 `npm install` 任何东西（Cloudflare 上也能过）。
 
 ### 部署后必须自检的路径
 

@@ -1,9 +1,10 @@
-name = "lottemart-vn-clone"
+name = "lottemart-vn"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-01-01"
 
+# 仓库：https://github.com/zerookok0/lottemart.vn
 # 部署：
-#   npx wrangler pages deploy dist --project-name <项目名>
+#   npx wrangler pages deploy dist --project-name lottemart-vn
 # 或在 Cloudflare 面板接 GitHub 仓库：
 #   Build command:      npm run build
 #   Output directory:   dist

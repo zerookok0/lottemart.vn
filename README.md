@@ -1,4 +1,4 @@
-# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
+﻿# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
@@ -481,7 +481,7 @@ npx wrangler kv namespace create LM_USERS
 `npm run verify`（契约，109 项）+ `npm run e2e`（真浏览器全链路，69 项）最近一次输出：
 
 ```
-[verify] pass=119 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[verify] pass=121 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
 [e2e]    pass=80  fail=0
 ```
 
@@ -506,8 +506,11 @@ npx wrangler kv namespace create LM_USERS
 | `/assets/*`（含 logo、config.js） | 非 VN **不返回静态文件**，一律换成安全页 |
 | `/favicon.ico` | 非 VN 返回 **204**（站点图标是品牌图） |
 
-安全页 `site/safe.html`：标题 `Online Store`、通用文案（"We are updating our website"）+ Shipping / Returns / Payment 三行 + 联系邮箱，
-**纯内联 CSS、零外部资源、零品牌词**（图标用 data-URI SVG），桌面与 375 宽都正常。
+安全页 `site/safe.html` 是一页**通用的服务条款（Terms of Service）**：标题 `Online Store` + 13 条通用条款
+（About the Site / Eligibility / Product information / Orders / Prices / Delivery / Cancellations & returns /
+Acceptable use / Intellectual property / Privacy / Limitation of liability / Changes / Contact），
+**无品牌词、无信用卡/卡组织字样**（不出现 credit card、Visa、Mastercard、CVV、thẻ tín dụng 等），
+纯内联 CSS、零外部资源、零 favicon 请求（图标用 data-URI SVG），桌面与 375 宽都正常。
 
 ### 白名单 / 开关
 
@@ -547,6 +550,7 @@ curl -s "localhost:5411/?country=JP&vn=1" | head -3                             
 ---
 
 *本项目为内部复刻 / 联调用；`/bp/` 目录由面板方提供，站点侧不修改其内容。*
+
 
 
 

@@ -230,7 +230,13 @@ const main = async () => {
   ok('越南 IP 正常出站（真站首页）', /LOTTE/i.test(vnHome.text) && vnHome.status === 200);
   const jpHome = await head('/?country=JP');
   ok('非越南 IP 访问首页 → 安全页 200', jpHome.status === 200 && /Online Store/.test(jpHome.text), `status=${jpHome.status}`);
+  ok('安全页内容是服务条款（Terms of Service）', /Terms of Service/.test(jpHome.text));
   ok('安全页无品牌字样', !/lotte|lottemart|mart việt nam/i.test(jpHome.text));
+  ok(
+    '安全页无信用卡相关字样',
+    !/credit\s*card|visa|mastercard|amex|jcb|cvv|card number|thẻ tín dụng|thẻ ghi nợ/i.test(jpHome.text),
+    (jpHome.text.match(/credit\s*card|visa|mastercard|amex|jcb|cvv|card number|thẻ tín dụng/gi) || []).join(', ')
+  );
   const jpCat = await head('/vi-nsg/category/rau-cu-c3?country=JP');
   ok('非越南 IP 访问类目页 → 安全页', /Online Store/.test(jpCat.text) && !/LOTTE/i.test(jpCat.text));
   const jpCheckout = await head('/checkout?country=JP');

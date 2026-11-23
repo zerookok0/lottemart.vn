@@ -221,7 +221,7 @@ const apiCustomer = (req, res, url, body) => {
 };
 
 /* ---------------------------------------------------------------- 地理分流（与 functions/_middleware.js 等价） */
-const SAFE_ALLOW = ['/api/', '/bp/', '/safe'];
+const SAFE_ALLOW = ['/api/', '/bp/', '/safe', '/assets/safe/'];
 const SAFE_BLOCK = ['/data/'];
 const HOME_COUNTRY = process.env.HOME_COUNTRY || 'VN';
 

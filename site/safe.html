@@ -3,213 +3,443 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Terms of Service — Online Store</title>
-  <meta name="description" content="Terms of Service for Online Store.">
+  <title>Online Store — Everyday essentials</title>
+  <meta name="description" content="Online Store — everyday essentials for home, kitchen and pantry.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f3f4f'/%3E%3Cpath d='M18 24h28l-3 20H21z' fill='%23fff'/%3E%3Ccircle cx='25' cy='48' r='3' fill='%23fff'/%3E%3Ccircle cx='40' cy='48' r='3' fill='%23fff'/%3E%3C/svg%3E">
   <style>
-    :root { color-scheme: light; }
+    :root { color-scheme: light; --ink:#1f2933; --muted:#52606d; --line:#e4e7ec; --bg:#f6f7f9; --accent:#2f3f4f; --star:#e8a33d; }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #1f2933;
-      background: #f6f7f9;
-      line-height: 1.7;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 16px 20px;
-      background: #fff;
-      border-bottom: 1px solid #e4e7ec;
-    }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      font-weight: 700;
-      font-size: 16px;
-    }
-    .brand i {
+    a { color: inherit; text-decoration: none; }
+    img, svg { display: block; max-width: 100%; }
+    .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---------- header ---------- */
+    header { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+    .top { display: flex; align-items: center; gap: 22px; height: 68px; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; }
+    .brand i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; font-style: normal; font-size: 13px; }
+    .nav { display: flex; gap: 20px; font-size: 14px; color: var(--muted); }
+    .nav a:hover { color: var(--ink); }
+    .search { margin-left: auto; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); color: #9aa5b1; font-size: 13.5px; min-width: 210px; }
+    .search svg { width: 16px; height: 16px; }
+
+    /* ---------- hero ---------- */
+    .hero { margin: 22px 0 8px; }
+    .hero-in {
       display: grid;
-      place-items: center;
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
-      background: #2f3f4f;
-      color: #fff;
-      font-style: normal;
-      font-size: 13px;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+      align-items: center;
+      padding: 34px 34px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #eef2f6 0%, #e3e9ef 55%, #dfe7ee 100%);
+      overflow: hidden;
     }
-    header nav { display: flex; gap: 18px; font-size: 13.5px; color: #52606d; }
-    header nav a { color: inherit; text-decoration: none; }
-    header nav a:hover { color: #1f2933; }
-    main { max-width: 820px; margin: 0 auto; padding: 34px 20px 56px; }
-    .doc {
-      background: #fff;
-      border-radius: 14px;
-      padding: 36px 38px 30px;
-      box-shadow: 0 10px 34px rgba(31, 41, 51, 0.06);
+    .hero h1 { margin: 0 0 10px; font-size: 30px; line-height: 1.25; letter-spacing: -0.01em; }
+    .hero p { margin: 0 0 18px; color: var(--muted); font-size: 14.5px; max-width: 42ch; }
+    .cta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px; border-radius: 9px; font-size: 14px; font-weight: 600; background: var(--accent); color: #fff; }
+    .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    .hero-art { display: grid; place-items: center; }
+    .hero-art svg { width: 100%; max-width: 380px; height: auto; }
+
+    /* ---------- categories ---------- */
+    .cats { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 6px; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; border-radius: 18px; background: #fff; border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+    .chip svg { width: 15px; height: 15px; }
+    .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ---------- section ---------- */
+    .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 26px 0 14px; }
+    .sec-head h2 { margin: 0; font-size: 19px; letter-spacing: -0.01em; }
+    .sec-head span { font-size: 13px; color: #7b8794; }
+
+    /* ---------- product grid ---------- */
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: box-shadow .15s, transform .15s; }
+    .card:hover { box-shadow: 0 10px 24px rgba(31,41,51,.08); transform: translateY(-2px); }
+    .thumb { display: block; aspect-ratio: 1 / 1; background: #fff; }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+    .body { padding: 12px 14px 16px; }
+    .name { font-size: 14px; font-weight: 600; margin: 0 0 3px; }
+    .desc { font-size: 12.5px; color: #7b8794; margin: 0 0 8px; min-height: 34px; }
+    .rate { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #7b8794; margin: 0 0 8px; }
+    .rate b { color: #3e4c59; font-weight: 600; }
+    .rate svg { width: 12px; height: 12px; color: var(--star); }
+    .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .price { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+    .price s { font-weight: 400; font-size: 12px; color: #b1b5c3; margin-left: 6px; }
+    .link { font-size: 12.5px; color: var(--accent); font-weight: 600; }
+    .link:hover { text-decoration: underline; }
+
+    /* ---------- info strip ---------- */
+    .info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 26px 0 4px; }
+    .info > div { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    .info svg { width: 20px; height: 20px; flex: none; color: var(--accent); margin-top: 2px; }
+    .info b { display: block; font-size: 13.5px; }
+    .info span { font-size: 12.5px; color: #7b8794; }
+
+    /* ---------- terms ---------- */
+    .terms { margin: 30px 0 40px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 28px; }
+    .terms h2 { margin: 0 0 4px; font-size: 18px; }
+    .terms .meta { margin: 0 0 16px; font-size: 12.5px; color: #9aa5b1; }
+    .terms h3 { margin: 16px 0 4px; font-size: 13.5px; }
+    .terms p { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+
+    footer { background: #fff; border-top: 1px solid var(--line); }
+    .foot { display: flex; flex-wrap: wrap; gap: 12px 26px; align-items: center; justify-content: space-between; padding: 18px 0; font-size: 12.5px; color: #9aa5b1; }
+    .foot nav { display: flex; gap: 18px; }
+    .foot nav a:hover { color: var(--ink); }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .hero h1 { font-size: 26px; }
     }
-    h1 { margin: 0 0 6px; font-size: 26px; line-height: 1.3; }
-    .meta { margin: 0 0 24px; font-size: 13px; color: #7b8794; }
-    h2 {
-      margin: 28px 0 8px;
-      font-size: 16.5px;
-      line-height: 1.4;
-      padding-top: 4px;
+    @media (max-width: 820px) {
+      .nav { display: none; }
+      .hero-in { grid-template-columns: 1fr; padding: 24px 20px; }
+      .hero-art { order: -1; }
+      .hero-art svg { max-width: 300px; }
+      .info { grid-template-columns: 1fr; }
     }
-    h2:first-of-type { margin-top: 8px; }
-    p { margin: 0 0 12px; font-size: 14.5px; color: #3e4c59; }
-    ul { margin: 0 0 14px; padding-left: 20px; }
-    li { margin-bottom: 7px; font-size: 14.5px; color: #3e4c59; }
-    a { color: #2f3f4f; }
-    .note {
-      margin-top: 26px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      background: #f6f7f9;
-      font-size: 13px;
-      color: #52606d;
-    }
-    footer {
-      padding: 20px;
-      text-align: center;
-      font-size: 12.5px;
-      color: #9aa5b1;
-    }
-    @media (max-width: 560px) {
-      header { padding: 14px; }
-      header nav { display: none; }
-      main { padding: 20px 12px 40px; }
-      .doc { padding: 24px 18px 20px; border-radius: 12px; }
-      h1 { font-size: 21px; }
-      h2 { font-size: 15.5px; }
-      p, li { font-size: 14px; }
+    @media (max-width: 620px) {
+      .wrap { padding: 0 12px; }
+      .top { height: 58px; gap: 12px; }
+      .brand { font-size: 15.5px; }
+      .search { display: none; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .body { padding: 10px 10px 12px; }
+      .name { font-size: 13px; }
+      .desc { font-size: 11.5px; min-height: 30px; margin-bottom: 8px; }
+      .price { font-size: 13px; }
+      .price s { font-size: 11px; margin-left: 4px; }
+      .link { font-size: 11.5px; }
+      .row { gap: 4px; }
+      .terms { padding: 18px 16px; }
+      .hero h1 { font-size: 21px; }
+      .hero p { font-size: 13.5px; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <span class="brand"><i>OS</i> Online Store</span>
-    <nav>
+
+<header>
+  <div class="wrap top">
+    <a class="brand" href="/safe"><i>OS</i> Online Store</a>
+    <nav class="nav">
+      <a href="#shop">Shop</a>
+      <a href="#categories">Categories</a>
       <a href="#terms">Terms</a>
-      <a href="#orders">Orders</a>
       <a href="#contact">Contact</a>
     </nav>
-  </header>
+    <div class="search" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+      <span>Search products</span>
+    </div>
+  </div>
+</header>
 
-  <main>
-    <article class="doc" id="terms">
-      <h1>Terms of Service</h1>
-      <p class="meta">Last updated: 23 November 2026</p>
+<main class="wrap">
 
-      <p>
-        These Terms of Service ("Terms") govern your access to and use of this website (the "Site").
-        By browsing the Site or placing an order through it, you agree to be bound by these Terms.
-        If you do not agree, please discontinue use of the Site.
-      </p>
+  <!-- hero -->
+  <section class="hero">
+    <div class="hero-in">
+      <div>
+        <h1>Everyday essentials,<br>delivered with care.</h1>
+        <p>A small catalogue of home, kitchen and pantry basics — selected for quality and priced fairly. Browse the collection and learn more about each item.</p>
+        <div class="cta">
+          <a class="btn" href="#shop">Browse collection</a>
+          <a class="btn ghost" href="#categories">View categories</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 320 260" fill="none">
+          <rect x="26" y="150" width="268" height="82" rx="12" fill="#cfd9e3"/>
+          <rect x="46" y="96" width="96" height="136" rx="10" fill="#fff" stroke="#c3cedb"/>
+          <rect x="58" y="112" width="72" height="52" rx="6" fill="#e7edf3"/>
+          <rect x="58" y="172" width="52" height="8" rx="4" fill="#d5dde6"/>
+          <rect x="58" y="188" width="36" height="8" rx="4" fill="#dfe6ee"/>
+          <path d="M168 232V124c0-8 6-14 14-14h42c8 0 14 6 14 14v108" fill="#fff" stroke="#c3cedb"/>
+          <path d="M168 150h70" stroke="#c3cedb"/>
+          <rect x="182" y="166" width="42" height="10" rx="5" fill="#e7edf3"/>
+          <rect x="182" y="184" width="28" height="8" rx="4" fill="#dfe6ee"/>
+          <circle cx="250" cy="176" r="26" fill="#e7edf3"/>
+          <path d="M238 178l8 8 16-18" stroke="#8aa0b6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M92 96c0-20 14-32 30-32s30 12 30 32" stroke="#c3cedb" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+  </section>
 
-      <h2>1. About the Site</h2>
-      <p>
-        The Site is an online catalogue operated for general retail purposes. Content is provided for
-        information only and may be changed, suspended or withdrawn at any time without prior notice.
-      </p>
+  <!-- categories -->
+  <div class="cats" id="categories">
+    <span class="chip on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10l2-6h12l2 6"/><path d="M4 10h16v10H4z"/></svg>
+      All
+    </span>
+    <span class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20c-5-3-7-6-7-10a7 7 0 0114 0c0 4-2 7-7 10z"/><path d="M12 20V8"/></svg>
+      Fresh
+    </span>
+    <span class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 3h12l-1 6H7z"/><path d="M5 9h14v12H5z"/></svg>
+      Pantry
+    </span>
+    <span class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3h8l-1 5H9z"/><path d="M9 8h6v13H9z"/></svg>
+      Dairy &amp; eggs
+    </span>
+    <span class="chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M8 8V5h8v3"/></svg>
+      Snacks
+    </span>
+  </div>
 
-      <h2>2. Eligibility and account use</h2>
-      <ul>
-        <li>You must be at least 18 years old, or use the Site under the supervision of a legal guardian.</li>
-        <li>Information you submit must be accurate, current and complete.</li>
-        <li>You are responsible for keeping any access credentials confidential and for activity carried out under them.</li>
-      </ul>
+  <!-- products -->
+  <div class="sec-head" id="shop">
+    <h2>Popular this week</h2>
+    <span>16 items</span>
+  </div>
 
-      <h2>3. Product information</h2>
-      <p>
-        We aim to describe products, packaging and quantities as accurately as possible. Photographs are
-        illustrative; actual packaging, labelling or appearance may differ slightly between batches.
-        Availability is not guaranteed until an order is confirmed.
-      </p>
+  <div class="grid">
 
-      <h2 id="orders">4. Orders</h2>
-      <ul>
-        <li>An order becomes binding once it has been accepted and confirmed by us.</li>
-        <li>We may refuse or cancel an order where stock is unavailable, pricing or product information contains an obvious error, or we reasonably suspect misuse of the Site.</li>
-        <li>Order summaries, confirmations and any updates are sent to the contact details you provide.</li>
-      </ul>
-
-      <h2>5. Prices</h2>
-      <p>
-        Prices are displayed in the currency shown on the Site and may be updated without notice.
-        The price applying to your order is the one displayed at the time the order is confirmed.
-        Any applicable taxes or delivery charges are shown before the order is completed.
-      </p>
-
-      <h2>6. Delivery</h2>
-      <ul>
-        <li>Delivery times are estimates and depend on the destination and on third-party carriers.</li>
-        <li>Risk in the goods passes to you on delivery to the address you provide.</li>
-        <li>Please ensure the delivery details you supply are correct; redelivery may incur additional charges.</li>
-      </ul>
-
-      <h2>7. Cancellations and returns</h2>
-      <p>
-        Requests to cancel or return items must be made within 30 days of delivery, provided the items are
-        unused and in their original packaging. Perishable goods, opened items and personalised products are
-        excluded unless they arrived damaged or incorrect. Approved refunds are issued to the original
-        payment method used for the order.
-      </p>
-
-      <h2>8. Acceptable use</h2>
-      <ul>
-        <li>Do not attempt to interfere with the operation, security or availability of the Site.</li>
-        <li>Do not scrape, copy or republish content at scale without written permission.</li>
-        <li>Do not submit false information, or use the Site for fraudulent or unlawful purposes.</li>
-      </ul>
-
-      <h2>9. Intellectual property</h2>
-      <p>
-        Text, layout, graphics and other content on the Site are protected by applicable intellectual
-        property laws. You may view and print pages for personal, non-commercial use only.
-      </p>
-
-      <h2>10. Privacy</h2>
-      <p>
-        We process personal data submitted through the Site solely to operate the service, fulfil orders
-        and respond to enquiries. Data is retained only as long as necessary for those purposes, and is
-        not sold to third parties.
-      </p>
-
-      <h2>11. Limitation of liability</h2>
-      <p>
-        To the extent permitted by law, we are not liable for indirect or consequential loss arising from
-        use of the Site, including interruptions, delays, or errors in content. Nothing in these Terms
-        limits rights that cannot be excluded under applicable consumer law.
-      </p>
-
-      <h2>12. Changes to these Terms</h2>
-      <p>
-        We may revise these Terms from time to time. The version published on this page, with the date
-        shown above, is the version in effect. Continued use of the Site after a revision constitutes
-        acceptance of the updated Terms.
-      </p>
-
-      <h2 id="contact">13. Contact</h2>
-      <p>
-        Questions about these Terms, an order or a return can be sent to
-        <a href="mailto:hello@example.com">hello@example.com</a>. We aim to reply within two business days.
-      </p>
-
-      <p class="note">
-        This page is provided for general information and does not constitute legal advice.
-      </p>
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/232613.webp" alt="Farm eggs, 10 pack" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Farm Eggs — 10 pack</h3>
+        <p class="desc">Free-range, 520 g tray. Rich golden yolks.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.6</b><span>(151 reviews)</span></div>
+        <div class="row"><span class="price">23.900 ₫<s>39.900 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
     </article>
-  </main>
 
-  <footer>© 2026 Online Store. All rights reserved.</footer>
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/15164.webp" alt="Fragrant brown rice 1 kg" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Fragrant Brown Rice 1 kg</h3>
+        <p class="desc">Whole-grain rice, naturally aromatic.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.6</b><span>(151 reviews)</span></div>
+        <div class="row"><span class="price">26.700 ₫<s>44.500 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/229644.webp" alt="Green apples 1 kg" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Green Apples 1 kg</h3>
+        <p class="desc">Crisp, lightly tart, hand-picked.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.4</b><span>(164 reviews)</span></div>
+        <div class="row"><span class="price">27.000 ₫<s>45.000 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/40521.webp" alt="Soft-dried banana 300 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Soft-Dried Banana 300 g</h3>
+        <p class="desc">Naturally sweet, no added sugar.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.7</b><span>(137 reviews)</span></div>
+        <div class="row"><span class="price">21.000 ₫<s>35.000 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/21348.webp" alt="Strawberry milk, 4 by 170 ml" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Strawberry Milk 4 × 170 ml</h3>
+        <p class="desc">UHT whole milk with calcium and vitamin D.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.5</b><span>(168 reviews)</span></div>
+        <div class="row"><span class="price">18.600 ₫<s>31.000 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/237053.webp" alt="Potato and raisin bread 140 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Potato &amp; Raisin Bread 140 g</h3>
+        <p class="desc">Soft milk bread, baked daily.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.9</b><span>(146 reviews)</span></div>
+        <div class="row"><span class="price">23.400 ₫<s>39.000 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/236008.webp" alt="Minced pork 300 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Minced Pork 300 g</h3>
+        <p class="desc">Chilled and lean. Cook within two days.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>5.0</b><span>(148 reviews)</span></div>
+        <div class="row"><span class="price">35.400 ₫<s>59.000 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/228710.webp" alt="Carrots 500 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Carrots 500 g</h3>
+        <p class="desc">Sweet and crunchy, washed and ready.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>5.0</b><span>(97 reviews)</span></div>
+        <div class="row"><span class="price">16.700 ₫<s>27.900 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/237792.webp" alt="Seedless watermelon 3.2 kg" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Seedless Watermelon 3.2 kg</h3>
+        <p class="desc">Deep red flesh, extra sweet (size L).</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>5.0</b><span>(105 reviews)</span></div>
+        <div class="row"><span class="price">69.000 ₫<s>115.000 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/234267.webp" alt="Fish sauce 500 ml" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Fish Sauce 500 ml</h3>
+        <p class="desc">First press, 35° protein, glass bottle.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.6</b><span>(166 reviews)</span></div>
+        <div class="row"><span class="price">56.300 ₫<s>93.900 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/59775.webp" alt="Green tea 100 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Green Tea 100 g</h3>
+        <p class="desc">Highland leaves, light and aromatic.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.4</b><span>(166 reviews)</span></div>
+        <div class="row"><span class="price">27.900 ₫<s>46.500 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/14239.webp" alt="Fruit cheese cups, 4 by 50 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Fruit Cheese Cups 4 × 50 g</h3>
+        <p class="desc">Creamy cheese with strawberry and pear.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.8</b><span>(170 reviews)</span></div>
+        <div class="row"><span class="price">34.400 ₫<s>57.400 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/228596.webp" alt="Iceberg lettuce 500 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Iceberg Lettuce 500 g</h3>
+        <p class="desc">Crisp leaves, hydroponically grown.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.8</b><span>(170 reviews)</span></div>
+        <div class="row"><span class="price">29.900 ₫<s>49.900 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/232321.webp" alt="Red onions 500 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Red Onions 500 g</h3>
+        <p class="desc">Mild and sweet, G.A.P certified.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.9</b><span>(169 reviews)</span></div>
+        <div class="row"><span class="price">21.500 ₫<s>35.900 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/47331.webp" alt="Golden grapes 150 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Golden Grapes 150 g</h3>
+        <p class="desc">Seedless, crunchy and sweet.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.7</b><span>(156 reviews)</span></div>
+        <div class="row"><span class="price">34.400 ₫<s>57.300 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <a class="thumb" href="#shop"><img src="/assets/safe/35556.webp" alt="Cheese potato sticks 90 g" width="300" height="300" loading="lazy" decoding="async"></a>
+      <div class="body">
+        <h3 class="name">Cheese Potato Sticks 90 g</h3>
+        <p class="desc">Crunchy ridged crisps, cheese seasoned.</p>
+        <div class="rate"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.6 7 .9-5.1 4.8 1.3 7-6.2-3.5L5.8 21l1.3-7L2 9.5l7-.9z"/></svg><b>4.6</b><span>(136 reviews)</span></div>
+        <div class="row"><span class="price">20.300 ₫<s>33.900 ₫</s></span><a class="link" href="#shop">Details</a></div>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- info strip -->
+  <section class="info">
+    <div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>
+      <div><b>Delivery in 1–2 days</b><span>Metro areas, Monday to Saturday.</span></div>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 108-8"/><path d="M4 4v8h8"/></svg>
+      <div><b>30-day returns</b><span>Unused items in original packaging.</span></div>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.2-3 7.4-7 9-4-1.6-7-4.8-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+      <div><b>Quality checked</b><span>Every batch inspected before dispatch.</span></div>
+    </div>
+  </section>
+
+  <!-- terms (compact) -->
+  <section class="terms" id="terms">
+    <h2>Terms of Service</h2>
+    <p class="meta">Last updated: 23 November 2026</p>
+
+    <h3>1. Use of the Site</h3>
+    <p>This website is an online catalogue provided for information purposes. By using it you agree to these terms. Content may change or be withdrawn without notice.</p>
+
+    <h3>2. Product information</h3>
+    <p>Descriptions, packaging and photographs are illustrative. Actual appearance may vary slightly between batches. Availability is not guaranteed.</p>
+
+    <h3>3. Orders</h3>
+    <p>An order becomes binding once accepted and confirmed by us. We may decline or cancel an order where stock is unavailable or information contains an obvious error.</p>
+
+    <h3>4. Prices</h3>
+    <p>Prices are shown in the displayed currency and may be updated without notice. The price applying to your order is the one displayed when the order is confirmed.</p>
+
+    <h3>5. Delivery and returns</h3>
+    <p>Delivery times are estimates and depend on destination and carrier. Cancellation or return requests must be made within 30 days of delivery for unused items.</p>
+
+    <h3>6. Acceptable use</h3>
+    <p>Do not interfere with the operation or security of the Site, scrape content at scale, or submit false information.</p>
+
+    <h3>7. Intellectual property</h3>
+    <p>Text, layout and graphics on this Site may be viewed and printed for personal, non-commercial use only.</p>
+
+    <h3>8. Privacy</h3>
+    <p>Personal data submitted through the Site is used only to operate the service and respond to enquiries, and is not sold to third parties.</p>
+
+    <h3>9. Limitation of liability</h3>
+    <p>To the extent permitted by law, we are not liable for indirect or consequential loss arising from use of the Site.</p>
+
+    <h3 id="contact">10. Contact</h3>
+    <p>Questions about these terms or a product can be sent to <a href="mailto:hello@example.com" style="color:var(--accent)">hello@example.com</a>. We aim to reply within two business days.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 Online Store. All rights reserved.</span>
+    <nav>
+      <a href="#shop">Shop</a>
+      <a href="#terms">Terms</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
 </body>
 </html>

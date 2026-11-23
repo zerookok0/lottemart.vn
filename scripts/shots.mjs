@@ -50,6 +50,7 @@ const SHOTS = [
   { name: 'register', url: '/register', w: 1440, h: 1100, ready: '.lm-auth-box' },
   { name: 'account', url: '/account', w: 1440, h: 1000, ready: '.lm-account-body' },
   { name: 'policy', url: '/vi-nsg/privacy', w: 1440, h: 1200, ready: '.lm-prose h2' },
+  { name: 'safe', url: '/safe?country=JP', w: 1440, h: 1400, ready: '.card .name' },
   { name: 'mobile-home', url: '/', w: 390, h: 844, ready: '.lm-card', closePromo: true },
   { name: 'mobile-popup', url: '/', w: 390, h: 844, ready: '.lm-card', clearPromo: true, after: 1400 },
   { name: 'mobile-product', url: null, w: 390, h: 844, ready: '.lm-pd-title' },
@@ -63,6 +64,7 @@ const SHOTS = [
     readyJs: "document.getElementById('bp-total')?.dataset.amount !== '0'",
     seedCart: true,
   },
+  { name: 'mobile-safe', url: '/safe?country=JP', w: 390, h: 844, ready: '.card .name' },
 ];
 
 const main = async () => {

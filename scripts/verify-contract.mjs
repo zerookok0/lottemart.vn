@@ -247,6 +247,16 @@ const main = async () => {
   ok('非越南 IP 拿不到品牌 logo（不返回 svg）', !/^<svg/i.test(jpLogo.text), jpLogo.text.slice(0, 40));
   const safeDirect = await head('/safe');
   ok('/safe 可直达', safeDirect.status === 200 && /Online Store/.test(safeDirect.text));
+  const safeImgs = new Set(jpHome.text.match(/\/assets\/safe\/[\w-]+\.webp/g) || []);
+  ok('安全页含真实商品图（≥12 张）', safeImgs.size >= 12, `imgs=${safeImgs.size}`);
+  ok('安全页商品图无品牌域名（本地化）', !/lottemart\.vn\/media/.test(jpHome.text));
+  const safeImg = await head('/assets/safe/232613.webp?country=JP');
+  ok(
+    '非越南 IP 可加载安全页商品图（image/webp）',
+    safeImg.status === 200 && /image\/webp/.test(safeImg.headers.get('content-type') || ''),
+    `status=${safeImg.status} ct=${safeImg.headers.get('content-type')}`
+  );
+  ok('安全页含价格与商品数（16 items）', /16 items/.test(jpHome.text) && /₫/.test(jpHome.text));
   const botHit = await head('/?bot=1');
   ok('模拟爬虫 UA（facebookexternalhit 一类）→ 安全页', /Terms of Service/.test(botHit.text) && !/LOTTE/i.test(botHit.text));
   const robots = await head('/robots.txt');

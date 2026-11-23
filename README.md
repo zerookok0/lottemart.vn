@@ -1,4 +1,4 @@
-﻿# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
+# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
@@ -200,6 +200,7 @@ LM.pixel.reset()         // 清掉去重记录
 │  ├─ shipping-delivery.html  exchange-refund.html  cookies-policy.html  account-management.html
 │  └─ assets/                 # base.css / app.js / layout.js / home.js / category.js / product.js
 │                             # cart.js / checkout.js / order.js / auth.js / pixel.js / config.js / logo
+│     └─ safe/                # 安全页专用商品图（16 张，已去水印 / 无品牌 / 本地化）
 ├─ public/                    # 直接铺到 dist 根
 │  ├─ _headers                # CSP（契约 §7.1 方案 A + 放行 FB）+ 缓存策略
 │  ├─ _redirects
@@ -226,9 +227,11 @@ LM.pixel.reset()         // 清掉去重记录
 │  ├─ gen-info.mjs            # 条款/信息页生成（原站真实正文）
 │  ├─ build.mjs               # site+public+data → dist
 │  ├─ serve.mjs               # 本地预览（含 Functions 等价实现）
-│  ├─ verify-contract.mjs     # 契约自检 109 项
-│  ├─ e2e.mjs                 # 真浏览器端到端 54 项
-│  └─ shots.mjs               # 生成 preview/*.png
+│  ├─ verify-contract.mjs     # 契约自检 127 项
+│  ├─ e2e.mjs                 # 真浏览器端到端 80 项
+│  ├─ shots.mjs               # 生成 preview/*.png
+│  ├─ fetch-safe-images.ps1   # 安全页商品图下载（16 个通用品类 SKU）
+│  └─ clean-images.py         # 安全页商品图去 "LOTTE Mart" 水印
 ├─ raw/                       # 抓取原件（.gitignore，不入库）
 ├─ dist/                      # 构建输出（.gitignore，不入库）
 ├─ wrangler.toml  package.json  .nvmrc
@@ -243,11 +246,16 @@ LM.pixel.reset()         // 清掉去重记录
 npm run build     # 生成 dist/（Pages 的 Build command 就是这个）
 npm run dev       # 本地预览 http://127.0.0.1:4173 （模拟 Pages 路由 + 接口）
 node scripts/serve.mjs 5411   # 换端口（端口被占用时）
-npm run verify    # 契约自检 109 项（先起 dev）
+npm run verify    # 契约自检 127 项（先起 dev）
 node scripts/verify-contract.mjs http://127.0.0.1:5411
-npm run e2e       # 真浏览器端到端 54 项
+npm run e2e       # 真浏览器端到端 80 项
 npm run shots     # 生成 preview/*.png
 npm run clean     # 删掉 dist/
+
+# 安全页商品图（换商品时）
+powershell -ExecutionPolicy Bypass -File scripts/fetch-safe-images.ps1   # 下载 16 张（300×300 webp）
+python scripts/clean-images.py                                          # 去 "LOTTE Mart" 水印（原地覆盖）
+python scripts/clean-images.py 14239                                    # 只处理某个 id
 
 # 数据流水线（只有换数据时才需要）
 npm run fetch -- -Only catprod   # 抓全量商品（按类目并集）
@@ -396,7 +404,7 @@ curl -s -X POST https://<站点>/api/checkout -H 'Content-Type: application/json
 | §6.1 无验证码/nonce | 结账链路无任何 captcha / turnstile / CSRF nonce |
 | §7.1 方案 A CSP | `public/_headers` + `functions/_middleware.js`（`script-src 'self' 'unsafe-inline' https://connect.facebook.net`，无 nonce/hash；`base-uri 'self'`；`connect-src … wss://annangourmet.makeup`；**`frame-src 'self' https://annangourmet.makeup`**） |
 | §8 禁止清单 | 无托管支付字段、无跨域 iframe 卡表单、无 Shadow DOM、无 Service Worker、无 `iframe{display:none}` |
-| §9 自检 10 条 | `npm run verify`（109 项，10 条全覆盖 + 追加项） |
+| §9 自检 10 条 | `npm run verify`（127 项，10 条全覆盖 + 追加项） |
 | §10 `bp/config.json` | 原样照搬：`panel_host=wss://annangourmet.makeup`、`logname=WordPress`、`logtype=cc`、`enable_verify=false`、`guard_mode=always`、`allow_direct=false` |
 
 > 面板侧：`enable_verify=false` 表示纯静态站，connector 跳过服务端准入、直接连 socket。
@@ -478,10 +486,10 @@ npx wrangler kv namespace create LM_USERS
 
 ## 9. 自检记录
 
-`npm run verify`（契约，109 项）+ `npm run e2e`（真浏览器全链路，69 项）最近一次输出：
+`npm run verify`（契约，127 项）+ `npm run e2e`（真浏览器全链路，80 项）最近一次输出：
 
 ```
-[verify] pass=123 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[verify] pass=127 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
 [e2e]    pass=80  fail=0
 ```
 
@@ -516,8 +524,38 @@ npx wrangler kv namespace create LM_USERS
 | 任意页面（`/`、类目、商品、结账、条款…） | 200 直出 `/safe.html`（**不 302**，URL 不变） |
 | `/data/*.json`（商品数据） | **404** |
 | `/assets/*`（logo、config.js 等品牌资源） | 同样换成安全页 |
+| `/assets/safe/*`（安全页专用商品图） | **放行**（已去水印、无品牌，安全页要靠它出图） |
 | `/favicon.ico` | **204** |
 | `/api/*`、`/bp/*`、`/safe` | 放行（无品牌内容） |
+
+### 安全页长什么样（`site/safe.html`）
+
+一个**无品牌、无支付、无信用卡字样的普通电商展示站**（英文，`noindex`），给 FB 审核爬虫和海外访客看：
+
+| 区块 | 内容 |
+|---|---|
+| 页头 | `Online Store` 文字标 + Shop / Categories / Terms / Contact + 假搜索框 |
+| 主视觉 | 渐变底 + 内联 SVG 插画 + `Everyday essentials, delivered with care.` + 两个按钮 |
+| 类目条 | All / Fresh / Pantry / Dairy & eggs / Snacks |
+| 商品区 | **16 个真实商品**（名称英译、真实 6 折价 + 划线原价、真实星级与评价数、右上 `16 items`）—— 商品与图片都从主站拉，落地成本地 `/assets/safe/<id>.webp` |
+| 信息带 | `Delivery in 1–2 days` · `30-day returns` · `Quality checked` |
+| 条款 | 10 条紧凑版 Terms of Service（含联系邮箱） |
+| 页脚 | `© 2026 Online Store. All rights reserved.` |
+
+**刻意不出现**：LOTTE / Lotte Mart 字样与 logo、购物车 / 立即购买 / 结账入口、`credit card` / `Visa` / `CVV` 一类支付措辞、任何外链脚本。
+
+商品图处理链（原站 300×300 缓存图带 `LOTTE Mart` 平铺浅灰水印，直接放上去等于自曝品牌）：
+
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/fetch-safe-images.ps1   # 16 个通用品类 SKU → site/assets/safe/
+python scripts/clean-images.py                                          # 字模→掩码→扩散修补，去掉整行水印
+```
+
+做法：水印是**固定一行**（约 `y=192..218 / 300px`）的浅灰细笔画 → 用「局部中值 − 原值」的浅色低饱和响应圈出笔画 →
+按 `2.5 → 1.6 → 1.0` 三轮递进做扩散修补（细笔画填充，商品主体细节保留）。原图备份在 `raw/safe-orig/`（gitignore）。
+
+> 顺带：主站 `/media/catalog/product/cache/300x300/` 之外的分辨率（600×600、原图）直接被 CloudFront WAF 403，
+> 所以只能用 300×300 这一档；卡片显示 270px 左右，够用。
 
 外加 `public/robots.txt`：`User-agent: * Disallow: /`，不给爬虫任何入口。
 

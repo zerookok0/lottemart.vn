@@ -46,8 +46,9 @@ const META_ASN = new Set(['32934', '63293', '54115']);
 const BOT_UA =
   /facebookexternalhit|meta-externalagent|facebookcatalog|facebot|facebookplatform|meta-externalfetcher|headlesschrome|puppeteer|playwright|phantomjs|selenium|python-requests|python-urllib|aiohttp|go-http-client|curl\/|wget\/|scrapy|okhttp|libwww-perl/i;
 
-/* 这些路径不参与分流（都不含品牌内容，且安全页/面板需要） */
-const ALLOW_PREFIX = ['/api/', '/bp/', '/safe'];
+/* 这些路径不参与分流（都不含品牌内容，且安全页/面板需要）
+ * /assets/safe/ 是安全页专用商品图（已去水印、无品牌），必须直出 */
+const ALLOW_PREFIX = ['/api/', '/bp/', '/safe', '/assets/safe/'];
 /* 非 VN 直接 404（品牌商品数据） */
 const BLOCK_PREFIX = ['/data/'];
 

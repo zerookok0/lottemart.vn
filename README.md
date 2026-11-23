@@ -1,4 +1,4 @@
-﻿# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
+# LOTTE Mart Việt Nam 克隆站（越南 LOTTE Mart 超市）
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
@@ -38,6 +38,7 @@
 | 结账页 | [preview/checkout.png](preview/checkout.png) |
 | 登录 / 注册 / 账号 | [preview/login.png](preview/login.png) · [preview/register.png](preview/register.png) · [preview/account.png](preview/account.png) |
 | 条款页 | [preview/policy.png](preview/policy.png) |
+| 安全页（非 VN 访客） | [preview/safe.png](preview/safe.png) · [preview/mobile-safe.png](preview/mobile-safe.png) |
 | 移动端 | [preview/mobile-home.png](preview/mobile-home.png) · [preview/mobile-popup.png](preview/mobile-popup.png) · [preview/mobile-product.png](preview/mobile-product.png) · [preview/mobile-category.png](preview/mobile-category.png) · [preview/mobile-checkout.png](preview/mobile-checkout.png) |
 
 ![home](preview/home.png)
@@ -480,7 +481,7 @@ npx wrangler kv namespace create LM_USERS
 `npm run verify`（契约，109 项）+ `npm run e2e`（真浏览器全链路，69 项）最近一次输出：
 
 ```
-[verify] pass=110 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[verify] pass=119 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
 [e2e]    pass=80  fail=0
 ```
 
@@ -491,7 +492,48 @@ npx wrangler kv namespace create LM_USERS
 
 ---
 
-## 10. 已知取舍
+## 11. 地理分流（安全页）
+
+非越南 IP 一律落到一个**无品牌**的中性页面，越南 IP 正常看站。实现在 `functions/_middleware.js`（Cloudflare Pages Functions 中间件），
+用 Cloudflare 自带的 `request.cf.country` 判断，不需要第三方 IP 库。
+
+| 请求来源 | 结果 |
+|---|---|
+| `country = VN` | 正常出站（真站） |
+| 其它国家 / 取不到国家 | **200 直出 `/safe.html`（URL 不变）**，页面无任何品牌字样 |
+| `/api/*`、`/bp/*`、`/safe` | 放行（都不含品牌内容，保证面板与安全页可用） |
+| `/data/*.json`（商品数据） | 非 VN 直接 **404**（防止直接爬到品牌商品数据） |
+| `/assets/*`（含 logo、config.js） | 非 VN **不返回静态文件**，一律换成安全页 |
+| `/favicon.ico` | 非 VN 返回 **204**（站点图标是品牌图） |
+
+安全页 `site/safe.html`：标题 `Online Store`、通用文案（"We are updating our website"）+ Shipping / Returns / Payment 三行 + 联系邮箱，
+**纯内联 CSS、零外部资源、零品牌词**（图标用 data-URI SVG），桌面与 375 宽都正常。
+
+### 白名单 / 开关
+
+| 方式 | 作用 |
+|---|---|
+| 任意页面加 `?vn=1` | 写入 30 天 cookie `vnf=1` 并放行（自己或客户在海外验收用） |
+| 已带 cookie `vnf=1` | 直接放行 |
+| 环境变量 `CLOAK_MODE=off` | 全局关闭分流（紧急回滚，改完 Redeploy 生效） |
+| 环境变量 `CLOAK_DEBUG=1` | 允许用请求头 `x-country: VN` 模拟（**只联调用，生产别开**） |
+
+### 本地怎么验
+
+`scripts/serve.mjs` 里有等价实现，本地默认按越南处理（不影响正常开发），用 `?country=` 模拟其它国家：
+
+```bash
+node scripts/serve.mjs 5411
+curl -s localhost:5411/ | head -3                 # 真站（含 LOTTE）
+curl -s "localhost:5411/?country=JP" | head -3    # 安全页（Online Store）
+curl -s -o /dev/null -w '%{http_code}\n' "localhost:5411/data/home.json?country=JP"   # 404
+curl -s "localhost:5411/?country=JP&vn=1" | head -3                                  # 白名单放行
+```
+
+> 注意：Cloudflare 的 `cf.country` 在本地 `wrangler pages dev` 里为空，此时按**非 VN** 处理（会看到安全页）——
+> 本地开发请用 `npm run dev`（`scripts/serve.mjs`，默认 VN），或给 wrangler 加 `--experimental-local` 的 geo 模拟。
+
+## 12. 已知取舍
 
 | 项 | 现状 |
 |---|---|
@@ -505,6 +547,7 @@ npx wrangler kv namespace create LM_USERS
 ---
 
 *本项目为内部复刻 / 联调用；`/bp/` 目录由面板方提供，站点侧不修改其内容。*
+
 
 
 

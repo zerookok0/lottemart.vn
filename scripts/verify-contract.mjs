@@ -224,8 +224,28 @@ const main = async () => {
   ok('首页无 <base>', !/<base\s/i.test(idx.text));
   ok('首页无 service worker', !/serviceWorker\.register/.test(idx.text));
 
-  /* ---------------- 10. 头/缓存 ---------------- */
-  section('10. 响应头与缓存');
+  /* ---------------- 10. 地理分流（非 VN → 安全页） ---------------- */
+  section('11. 地理分流（安全页）');
+  const vnHome = await head('/?country=VN');
+  ok('越南 IP 正常出站（真站首页）', /LOTTE/i.test(vnHome.text) && vnHome.status === 200);
+  const jpHome = await head('/?country=JP');
+  ok('非越南 IP 访问首页 → 安全页 200', jpHome.status === 200 && /Online Store/.test(jpHome.text), `status=${jpHome.status}`);
+  ok('安全页无品牌字样', !/lotte|lottemart|mart việt nam/i.test(jpHome.text));
+  const jpCat = await head('/vi-nsg/category/rau-cu-c3?country=JP');
+  ok('非越南 IP 访问类目页 → 安全页', /Online Store/.test(jpCat.text) && !/LOTTE/i.test(jpCat.text));
+  const jpCheckout = await head('/checkout?country=JP');
+  ok('非越南 IP 访问结账页 → 安全页', /Online Store/.test(jpCheckout.text) && !/LOTTE/.test(jpCheckout.text));
+  const jpData = await head('/data/home.json?country=JP');
+  ok('非越南 IP 拿不到商品数据（404）', jpData.status === 404, `status=${jpData.status}`);
+  const jpLogo = await head('/assets/logo-lotte.svg?country=JP');
+  ok('非越南 IP 拿不到品牌 logo（不返回 svg）', !/^<svg/i.test(jpLogo.text), jpLogo.text.slice(0, 40));
+  const safeDirect = await head('/safe');
+  ok('/safe 可直达', safeDirect.status === 200 && /Online Store/.test(safeDirect.text));
+  const bypass = await head('/?country=JP&vn=1');
+  ok('?vn=1 白名单放行（并写 cookie）', /LOTTE/i.test(bypass.text) && /vnf=1/.test(bypass.headers.get('set-cookie') || ''), bypass.headers.get('set-cookie') || '');
+
+  /* ---------------- 11. 头/缓存 ---------------- */
+  section('12. 响应头与缓存');
   const idxH = idx.headers;
   ok('首页 CSP 存在', Boolean(idxH.get('content-security-policy')));
   ok('首页 Referrer-Policy', Boolean(idxH.get('referrer-policy')));

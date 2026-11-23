@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * 本地预览：模拟 Cloudflare Pages 路由 + Functions（等价实现，零依赖）
  *
@@ -226,19 +226,25 @@ const SAFE_BLOCK = ['/data/'];
 const HOME_COUNTRY = process.env.HOME_COUNTRY || 'VN';
 
 const geoGate = (req, res, url) => {
-  // 本地默认按越南处理；用 ?country=JP 模拟非越南，?vn=1 或 cookie vnf=1 走白名单
+  // 本地默认按越南处理；?country=JP 模拟非越南，?bot=1 模拟爬虫 UA 命中，?vn=1 或 cookie vnf=1 走白名单
   const country = String(url.searchParams.get('country') || HOME_COUNTRY).toUpperCase();
+  const fakeBot = url.searchParams.get('bot') === '1';
   const passParam = url.searchParams.get('vn') === '1';
   const passCookie = /(?:^|;\s*)vnf=1/.test(req.headers.cookie || '');
   const cloakOff = String(process.env.CLOAK_MODE || '').toLowerCase() === 'off';
-  const pass = cloakOff || passParam || passCookie || country === HOME_COUNTRY;
+  const key = String(process.env.CLOAK_KEY || '');
   const p = url.pathname;
+
+  if (key && p === '/' + key) {
+    res.writeHead(302, { ...baseHeaders(), Location: '/', 'Set-Cookie': 'vnf=1; Path=/; Max-Age=2592000; SameSite=Lax' });
+    res.end();
+    return true;
+  }
+
+  const pass = cloakOff || passParam || passCookie || (country === HOME_COUNTRY && !fakeBot);
   const allow = SAFE_ALLOW.some((x) => p === x || p.startsWith(x)) || p === '/safe.html';
   if (pass || allow) {
-    if (passParam) {
-      // 继续走正常流程，额外种 cookie
-      res.setHeader('Set-Cookie', 'vnf=1; Path=/; Max-Age=2592000; SameSite=Lax');
-    }
+    if (passParam) res.setHeader('Set-Cookie', 'vnf=1; Path=/; Max-Age=2592000; SameSite=Lax');
     return false;
   }
   if (SAFE_BLOCK.some((x) => p.startsWith(x))) {

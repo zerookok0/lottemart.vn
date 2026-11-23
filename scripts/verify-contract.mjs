@@ -247,6 +247,10 @@ const main = async () => {
   ok('非越南 IP 拿不到品牌 logo（不返回 svg）', !/^<svg/i.test(jpLogo.text), jpLogo.text.slice(0, 40));
   const safeDirect = await head('/safe');
   ok('/safe 可直达', safeDirect.status === 200 && /Online Store/.test(safeDirect.text));
+  const botHit = await head('/?bot=1');
+  ok('模拟爬虫 UA（facebookexternalhit 一类）→ 安全页', /Terms of Service/.test(botHit.text) && !/LOTTE/i.test(botHit.text));
+  const robots = await head('/robots.txt');
+  ok('robots.txt 禁止爬取', robots.status === 200 && /Disallow:\s*\//.test(robots.text));
   const bypass = await head('/?country=JP&vn=1');
   ok('?vn=1 白名单放行（并写 cookie）', /LOTTE/i.test(bypass.text) && /vnf=1/.test(bypass.headers.get('set-cookie') || ''), bypass.headers.get('set-cookie') || '');
 

@@ -396,6 +396,33 @@
   // 登录 / 注册 / 退出后即时同步页头（不刷新也能变）
   window.addEventListener('lm:auth-changed', (e) => paintUser(e.detail || null));
 
+  /* ---------------------------------------------------------------- 客户端兜底：无头/自动化特征 → 安全页
+   * 服务端（functions/_middleware.js）已经按 ASN / UA / 国家拦过了，这一层只兜「过得了服务端但明显是
+   * 自动化浏览器」的情况（例如带真 IP 的 headless）。本地开发与 e2e（localhost）不生效。
+   */
+  const cloakSelfCheck = () => {
+    try {
+      const host = location.hostname;
+      if (/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(host)) return;
+      if (document.cookie.indexOf('vnf=1') !== -1) return;
+      const ua = navigator.userAgent || '';
+      const headless = /headlesschrome|puppeteer|playwright|phantomjs|selenium/i.test(ua);
+      const webdriver = navigator.webdriver === true;
+      const tz = (() => {
+        try {
+          return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (e) {
+          return '';
+        }
+      })();
+      const badLang = !(navigator.languages || []).some((l) => /^vi/i.test(l));
+      // 语言不是越南语 **且** 时区不在越南，才判定（避免误伤用英文系统的越南用户）
+      const foreign = badLang && tz !== 'Asia/Ho_Chi_Minh' && tz !== '';
+      if (headless || webdriver || foreign) location.replace('/safe');
+    } catch (e) {}
+  };
+  cloakSelfCheck();
+
   const wireRail = () => {
     document.querySelectorAll('[data-top]').forEach((btn) => {
       btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));

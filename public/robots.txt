@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# No crawling. No indexing. No archive.

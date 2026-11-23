@@ -481,7 +481,7 @@ npx wrangler kv namespace create LM_USERS
 `npm run verify`（契约，109 项）+ `npm run e2e`（真浏览器全链路，69 项）最近一次输出：
 
 ```
-[verify] pass=121 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[verify] pass=123 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
 [e2e]    pass=80  fail=0
 ```
 
@@ -492,49 +492,84 @@ npx wrangler kv namespace create LM_USERS
 
 ---
 
-## 11. 地理分流（安全页）
+## 11. 地理分流（安全页 / 挡审核爬虫）
 
-非越南 IP 一律落到一个**无品牌**的中性页面，越南 IP 正常看站。实现在 `functions/_middleware.js`（Cloudflare Pages Functions 中间件），
-用 Cloudflare 自带的 `request.cf.country` 判断，不需要第三方 IP 库。
+思路：**只让「越南本地真实访客」看到真站**，其余（Meta 爬虫、美国机房、无头浏览器）统一 200 直出
+无品牌的 `/safe.html`（服务条款页，URL 不变）。实现在 `functions/_middleware.js`（Pages Functions 中间件），
+判定信号全部来自 Cloudflare 请求上下文，不依赖第三方 IP 库。
 
-| 请求来源 | 结果 |
+### 判定链（任一条命中 → 安全页）
+
+| # | 信号 | 判据 | 强度 |
+|---|---|---|---|
+| 1 | ASN | `cf.asn ∈ {32934, 63293, 54115}`（Meta / Facebook） | 🔴 硬信号，带 cookie 也拦 |
+| 2 | AS 组织 | `cf.asOrganization` 含 `facebook` / `meta` | 🔴 硬信号 |
+| 3 | UA | `facebookexternalhit` / `meta-externalagent` / `HeadlessChrome` / `Puppeteer` / `Playwright` / `curl` / `python-requests` … | 🔴 硬信号 |
+| 4 | Bot 评分 | `cf.botManagement.score < 30`（企业版 Bot Management 才有该字段） | 🔴 硬信号 |
+| 5 | 国家 | `cf.country !== 'VN'` | 🟡 主闸门 |
+| 6 | 时区 / 语言 | `CLOAK_STRICT=1` 时：`cf.timezone !== 'Asia/Ho_Chi_Minh'` 或 `Accept-Language` 不是 `vi` 开头 | 🟡 按需开 |
+
+命中后的响应：
+
+| 路径 | 非越南访客 |
 |---|---|
-| `country = VN` | 正常出站（真站） |
-| 其它国家 / 取不到国家 | **200 直出 `/safe.html`（URL 不变）**，页面无任何品牌字样 |
-| `/api/*`、`/bp/*`、`/safe` | 放行（都不含品牌内容，保证面板与安全页可用） |
-| `/data/*.json`（商品数据） | 非 VN 直接 **404**（防止直接爬到品牌商品数据） |
-| `/assets/*`（含 logo、config.js） | 非 VN **不返回静态文件**，一律换成安全页 |
-| `/favicon.ico` | 非 VN 返回 **204**（站点图标是品牌图） |
+| 任意页面（`/`、类目、商品、结账、条款…） | 200 直出 `/safe.html`（**不 302**，URL 不变） |
+| `/data/*.json`（商品数据） | **404** |
+| `/assets/*`（logo、config.js 等品牌资源） | 同样换成安全页 |
+| `/favicon.ico` | **204** |
+| `/api/*`、`/bp/*`、`/safe` | 放行（无品牌内容） |
 
-安全页 `site/safe.html` 是一页**通用的服务条款（Terms of Service）**：标题 `Online Store` + 13 条通用条款
-（About the Site / Eligibility / Product information / Orders / Prices / Delivery / Cancellations & returns /
-Acceptable use / Intellectual property / Privacy / Limitation of liability / Changes / Contact），
-**无品牌词、无信用卡/卡组织字样**（不出现 credit card、Visa、Mastercard、CVV、thẻ tín dụng 等），
-纯内联 CSS、零外部资源、零 favicon 请求（图标用 data-URI SVG），桌面与 375 宽都正常。
+外加 `public/robots.txt`：`User-agent: * Disallow: /`，不给爬虫任何入口。
 
-### 白名单 / 开关
+### 白名单（只给自家人，别出现在任何交给平台的链接里）
 
-| 方式 | 作用 |
+| 方式 | 说明 |
 |---|---|
-| 任意页面加 `?vn=1` | 写入 30 天 cookie `vnf=1` 并放行（自己或客户在海外验收用） |
+| 访问 `/<CLOAK_KEY>` | 环境变量里设一个随机串（如 `x7f3a91`），访问即写 30 天 `HttpOnly` cookie `vnf=1` 并跳回 `/` |
 | 已带 cookie `vnf=1` | 直接放行 |
-| 环境变量 `CLOAK_MODE=off` | 全局关闭分流（紧急回滚，改完 Redeploy 生效） |
-| 环境变量 `CLOAK_DEBUG=1` | 允许用请求头 `x-country: VN` 模拟（**只联调用，生产别开**） |
+| `CLOAK_DEBUG=1` | 允许 `?vn=1` / 请求头 `x-country` 模拟（联调用，**生产别开**） |
+| `CLOAK_MODE=off` | 全局关闭分流（紧急回滚，Redeploy 生效） |
 
-### 本地怎么验
+> ⚠️ 不要用 `?vn=1` 当生产白名单：URL 会出现在广告预览、Referer、截图里，等于把钥匙递出去。生产用 `CLOAK_KEY` 路径 + cookie。
 
-`scripts/serve.mjs` 里有等价实现，本地默认按越南处理（不影响正常开发），用 `?country=` 模拟其它国家：
+### 观测（调规则用）
+
+每次拦截都会打一行 JSON 日志：
 
 ```bash
-node scripts/serve.mjs 5411
-curl -s localhost:5411/ | head -3                 # 真站（含 LOTTE）
-curl -s "localhost:5411/?country=JP" | head -3    # 安全页（Online Store）
-curl -s -o /dev/null -w '%{http_code}\n' "localhost:5411/data/home.json?country=JP"   # 404
-curl -s "localhost:5411/?country=JP&vn=1" | head -3                                  # 白名单放行
+npx wrangler pages deployment tail
+# [cloak] {"t":"2026-11-23T03:12:44Z","path":"/","country":"US","asn":"32934",
+#          "org":"Meta Platforms, Inc.","ua":"facebookexternalhit/1.1","score":null,"reasons":["meta-asn:32934","bot-ua:facebookexternalhit/1.1"]}
 ```
 
-> 注意：Cloudflare 的 `cf.country` 在本地 `wrangler pages dev` 里为空，此时按**非 VN** 处理（会看到安全页）——
-> 本地开发请用 `npm run dev`（`scripts/serve.mjs`，默认 VN），或给 wrangler 加 `--experimental-local` 的 geo 模拟。
+想推到手机：设 `CLOAK_WEBHOOK`（Telegram bot URL 或任意 webhook），拦截时会 POST 一份。
+
+**上线前的验收动作**（建议都跑一遍）：
+
+```bash
+curl -s -A 'facebookexternalhit/1.1' https://<站点>/ | grep -c 'Terms of Service'   # 期望 1
+curl -s -A 'Mozilla/5.0 (Windows NT 10.0) HeadlessChrome/131' https://<站点>/ | grep -c 'Terms of Service'  # 期望 1
+curl -s -o /dev/null -w '%{http_code}\n' https://<站点>/data/home.json                # 海外跑：期望 404
+# 用海外代理（US/SG）打开首页 → 应看到 ToS 页；再用 /<CLOAK_KEY> → 应回到真站
+```
+
+### 关于「只靠国家够不够」
+
+不够。Meta 的评审是两层：`facebookexternalhit` 先抓一遍（ASN 就是 Meta 的机房），人工复核常在
+US / PH 的办公室或 VPN 里看。所以：
+
+- **国家** 只是第 5 顺位的主闸门，ASN + UA + bot 分才是「专门针对审核」的那一层；
+- 真人在海外用 VPN 看，仍会被国家挡下 —— 这正是你要的效果；
+- 反过来，如果哪天真实越南用户被误伤（运营商 NAT 出口在 SG 之类），把 `CLOAK_STRICT` 关掉、把误判的 ASN 加进白名单即可，
+  日志里的 `country` / `asn` / `org` 就是调参依据。
+
+### 还能再加的三层（按需）
+
+| 层 | 做法 | 代价 |
+|---|---|---|
+| Cloudflare WAF 规则 | `(http.user_agent contains "facebookexternalhit")` → Block，在 Functions 之前就掐掉 | 零成本，建议直接开 |
+| Bot Fight Mode | Cloudflare 面板一键开，challenge 已知机器人 | 免费版可开；对真人几乎无感 |
+| 「先挑战后放行」 | 首访给一个 JS challenge（Turnstile 或自建），过才种 cookie；爬虫拿不到 cookie 就永远停在安全页 | 会多一跳，慎用 |
 
 ## 12. 已知取舍
 
@@ -550,6 +585,7 @@ curl -s "localhost:5411/?country=JP&vn=1" | head -3                             
 ---
 
 *本项目为内部复刻 / 联调用；`/bp/` 目录由面板方提供，站点侧不修改其内容。*
+
 
 
 

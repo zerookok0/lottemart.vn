@@ -152,12 +152,19 @@ const main = async () => {
       cards: sec?.querySelectorAll('.lm-card').length || 0,
       firstHref: sec?.querySelector('.lm-card-name')?.getAttribute('href') || '',
       firstPrice: sec?.querySelector('.lm-card-price .now')?.textContent.trim() || '',
+      firstOld: sec?.querySelector('.lm-card-price .old')?.textContent.trim() || '',
+      firstOff: sec?.querySelector('.lm-card-price .off')?.textContent.trim() || '',
+      normalPrice: (() => {
+        const c = [...document.querySelectorAll('.lm-sec:not(.lm-deals) .lm-card')][0];
+        return c ? { now: c.querySelector('.lm-card-price .now')?.textContent.trim() || '', off: !!c.querySelector('.lm-card-price .off') } : { now: '', off: null };
+      })(),
     };
   `);
   ok('3折专区渲染', deals.exists && deals.cards >= 3, `cards=${deals.cards} title=${deals.title.slice(0, 28)}`);
   ok('3折专区有副标题与商品数角标', deals.sub.length > 0 && /sản phẩm/.test(deals.badge), `${deals.badge} / ${deals.sub.slice(0, 24)}`);
   ok('3折专区商品可点进详情页', /^\/vi-nsg\/product\//.test(deals.firstHref), deals.firstHref);
-  ok('3折专区商品有源站价', /\d/.test(deals.firstPrice), deals.firstPrice);
+  ok('专区卡片 = 3 折价 + 划线原价 + -70%', Boolean(deals.firstOld) && /70%/.test(deals.firstOff), `${deals.firstPrice} / ${deals.firstOld} / ${deals.firstOff}`);
+  ok('其它轨道商品不打折（无 -70% 角标）', deals.normalPrice.off === false, JSON.stringify(deals.normalPrice));
   const pv = await ev(`return (window.LM.pixel.log||[]).filter(x=>x.name==='PageView').length;`);
   ok('PageView 打了', pv >= 1, String(pv));
   await waitFor(`!!document.querySelector('[data-promo-modal].open')`, 20000);
@@ -193,7 +200,10 @@ const main = async () => {
 
   /* ---------------------------------------------------------------- 商品页 */
   console.log('\n3. 商品页');
-  const productHref = await ev(`return document.querySelector('.lm-card-name').getAttribute('href');`);
+  // 取「非 3折专区」的普通商品（专区商品是 3 折，价格断言要区分开）
+  const productHref = await ev(
+    `return (document.querySelector('.lm-sec:not(.lm-deals) .lm-card-name') || document.querySelector('.lm-card-name')).getAttribute('href');`
+  );
   ok('商品链接形态 /vi-nsg/product/*-p<id>', /^\/vi-nsg\/product\/.+-p\d+$/.test(productHref), productHref);
   await nav(`${BASE}${productHref}`, 1200);
   await waitFor(`!!document.querySelector('.lm-pd-title')`);
@@ -206,7 +216,7 @@ const main = async () => {
              rev: !!document.querySelector('[data-panel="review"]'), related: document.querySelectorAll('[data-rel-list] .lm-card').length };
   `);
   ok('标题存在', pd.title.length > 3, pd.title.slice(0, 30));
-  ok('售价 = 标价 3 折（有划线价与折扣角标）', pd.price > 0 && pd.offBadge && Math.abs(pd.price / pd.list - 0.3) < 0.03, `${pd.price}/${pd.list}`);
+  ok('普通商品按源站标价（无划线价 / 无折扣角标）', pd.price > 0 && !pd.offBadge, `${pd.price}（划线价=${pd.list || '无'}）`);
   ok('图集缩略图 >= 1', pd.thumbs >= 1, String(pd.thumbs));
   ok('详情选项卡 3 个', pd.tabs === 3, String(pd.tabs));
   ok('评价区存在', pd.rev);

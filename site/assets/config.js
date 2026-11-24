@@ -28,9 +28,9 @@ window.LM_CONFIG = {
   currency: 'VND',
   locale: 'vi',
   /* 价格口径：售价 = 原价 × discountRate（再取整到 100₫）
-   * 当前 0.3 = 全站 3 折（划线价 + -70% 角标）；改 1 就是按源站标价卖 */
-  discountRate: 0.3,
-  discountLabel: '-70%',
+   * 当前 1 = 全站按源站标价卖；只有首页「3折专区」里那批精选商品是 3 折（由 scripts/discount-deals.mjs 单独写进数据） */
+  discountRate: 1,
+  discountLabel: '',
   freeShipThreshold: 0, // 0 = 全站免运费（运费恒为 0）
 
   /* ---- 进站弹窗（高 CTR 促销页）---- */
@@ -40,17 +40,17 @@ window.LM_CONFIG = {
     delayMs: 800,
     ttlHours: 6,
 
-    /* 文案（主打「最低 3 折 / 最高减 70%」） */
+    /* 文案（主打「最低 3 折 / 最高减 70%」，指向首页专区） */
     badge: 'Ưu Đãi Lớn Nhất Năm',
-    headline: 'GIẢM ĐẾN 70% TOÀN BỘ NGÀNH HÀNG',
+    headline: 'DEAL 3 CHẤM — GIẢM ĐẾN 70%',
     heroTitle: '70%',
     heroTitleSub: 'OFF',
     ribbon: 'Giá chỉ từ 30% — Săn ngay!',
-    script: 'Hàng ngàn sản phẩm giảm sâu\nđến 70% · số lượng có hạn',
+    script: 'Tuyển chọn mỗi ngày · số lượng có hạn',
     brand: 'LOTTE MART',
     countdownLabel: 'Ưu đãi kết thúc sau',
     cta: 'Săn ưu đãi ngay',
-    ctaHref: '/vi-nsg/collection/uu-dai-hot',
+    ctaHref: '/#deals',
     dismiss: 'Để sau',
 
     /* 卖点（CTR：免运费 + 当日送达 + 正品） */

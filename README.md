@@ -2,7 +2,7 @@
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
-**售价 = 原站标价的 3 折（-70%，划线价 + 折扣角标自动显示）**。
+**售价 = 原站标价**；**只有首页「3折专区」里那 18 个精选商品是 3 折（-70%）**。
 
 ---
 
@@ -13,7 +13,7 @@
 | 首页 | `/` — 主视觉轮播（整幅，按源站 banner 1200×340 比例不裁切，带左右箭头 + 圆点）+ 6 个快捷入口 + 优惠券条 + **3折专区（人工精选）** + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
 | 类目页 | `/vi-nsg/category/<url_key>-c<id>` — 26 个一级 / 399 个类目节点 + **1 个源站虚拟类目「Giao 60 Phút」**，左筛选（Nổi bật / 类目树 / 配送 / 星级 / 品牌 / 价格区间 / 清除）+ 排序 + 分页 + 加购 |
 | 集合页 | `/vi-nsg/collection/<key>` — 8 个顶部导航集合，各自独立筛选与排序（详见下表），不再是同一份榜单 |
-| 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、3 折价 + 划线价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
+| 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、源站标价（专区商品为 3 折 + 划线价）、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
 | 搜索 | `/search?q=` — 全量 14,732 商品本地索引（去声调 + 多词 AND + SKU），结果用同一套筛选/排序 |
 | 购物车 | `/cart` — 改数量、删除、小计、优惠额、运费、合计、去结账 |
 | 结账页 | `/checkout` — 契约 §3/§4 的 head 三段顺序 + DOM，接 `/bp/` connector（20261121 版：守卫模式 + 面板托管验证屏）；账单字段与源站口径一致（见下） |
@@ -57,7 +57,7 @@
 | 动作 | 红色 `Săn ưu đãi ngay →`（跳 `ctaHref`）+ 灰色 `Để sau` + 右上白底红字 `×` |
 | 频次 | 关掉后 `ttlHours: 6` 内不再弹；`pages` 控制出现在哪些页面 |
 
-> 弹窗与全站价格口径一致（全站 3 折 = 70% OFF）。改口径只动 `promoModal` 的 `badge / headline / heroTitle / ribbon / script / cta` 六个字段。
+> 弹窗只宣传首页「3折专区」（CTA 直接跳 `/#deals`），不暗示全站 3 折。改口径只动 `promoModal` 的 `badge / headline / heroTitle / ribbon / script / cta` 六个字段。
 
 响应式：桌面居中卡片 `min(94vw, 520px)`；≤480px 变成底部抽屉（`border-radius: 18px 18px 0 0`，`max-height: 92dvh`），字号用 `clamp()` 连续缩放，CTA 与倒计时始终在首屏内。
 
@@ -175,7 +175,7 @@ LM.pixel.reset()         // 清掉去重记录
 |---|---|
 | 标题 | `Deal 3 Chấm — Giảm Đến 70%`（「三折」的越南语说法，配 `-70%` 橙色角标） |
 | 副标题 | `Chỉ còn 30% giá gốc · số lượng có hạn, nhanh tay kẻo lỡ` |
-| 卡片 | 与全站同一套 `LM.card()`：真图、真名、3 折价 + 划线标价、星级、评价数、加购、可点进商品详情 |
+| 卡片 | 与全站同一套 `LM.card()`：真图、真名、3 折价 + 划线标价（全站唯一打折的一批）、星级、评价数、加购、可点进商品详情 |
 | 顺序 | 完全按 `deals.txt` 里的行序（不是按销量/评分重排） |
 | 空态 | `deals.txt` 为空 → 整块不渲染（不会留个空壳） |
 
@@ -194,7 +194,7 @@ npm run build
 
 - 清单里**已在 14,732 商品库**里的 → 直接按 `deals.txt` 顺序排进专区（不重抓，秒完成）；
 - 清单里**不在库**的 → 用 `raw/deals/<id>.json` 生成卡片 + 详情分片 + 搜索条目，商品页/加购/搜索全部可用；
-- 价格口径与全站一致：`p = 标价 × 0.3`（专区不单独定价，跟着 `reprice.mjs` 的 rate 走）；
+- 价格口径：**专区是唯一打折的一批**，`p = 标价 × 0.3`；其余商品一律 `p = 标价`（源站价）。
 - 评价：抓到 `raw/deals/reviews-<id>.json` 就写进 `data/reviews/` 分片，商品页「Đánh giá」选项卡显示真实评论。
 
 > 抓取仍然走 PowerShell/.NET（源站 CloudFront WAF 拦 OpenSSL 指纹，Node/curl 直接 403）。
@@ -232,13 +232,14 @@ npm run build
 
 ```
 原站标价 list（₫ 整数，如 46.900）
-  → 售价 price = round(list × 0.3 / 100) × 100      // 当前口径：3 折（-70%），取整到 100₫
+  → 售价 price = list                                // 默认口径：按源站标价卖，不打折
   → 展示：46.900 ₫（无划线价、无折扣角标）
 ```
 
 - 唯一实现：`site/assets/app.js` 的 `LM.pricing()`（`LM.priceOf` / `LM.listOf` 兼容卡片短字段 `p` / `l`）。
 - 数据侧：`data/` 里 `p`（卡片售价）已全部对齐到 `l`（原价），`price` 对齐到 `list`；改价用 `node scripts/reprice.mjs`。
-- 打折只是配置：`site/assets/config.js` 的 `discountRate` 改成 `0.6` 就回到全站 6 折（划线价 + `-40%` 角标会自动出现，`off` 为 0 时自动隐藏）。
+- 打折只有「3折专区」那 18 个 id：`node scripts/discount-deals.mjs --rate=0.3`（只改这些 id 在 data/ 里所有出现的位置，卡片/详情/搜索一起变 3 折）；`off` 为 0 的商品自动不显示划线价与角标。
+- 要整体打折：`site/assets/config.js` 的 `discountRate` 改成 `0.6`/`0.3` + `node scripts/reprice.mjs --rate=0.6`。
 - 四处同源：`#bp-total[data-amount]` == `window.__BP_CART__.total` == `/api/cart.total` == `/api/checkout.amount`，全部是 **₫ 整数**（VND 无小数位，`currency: "VND"`）。
 
 ## 链接与跳转（踩过的坑）
@@ -563,8 +564,8 @@ npx wrangler kv namespace create LM_USERS
 
 覆盖：
 
-- **契约侧**：`/checkout` 200 / 无 Location / CSP 四条铁律（含 `frame-src` 放行面板域、`script-src` 无 nonce、`base-uri 'self'`、`connect-src` 带 `wss://`、无 sandbox、无 `X-Frame-Options: DENY`）、6 个固定 id、head 三段顺序、UTM 键表、`/bp/*` 11 个资源全 200、`bp/config.json` 的 `allow_direct=false` / `guard_mode=always`、`/api/cart` 结构、`/api/checkout` 200+幂等+单号原样回传+非法入参仍 200、`/order/<no>` 200、14 个页面 200、类目树 26/399、商品数、卡片/详情字段、售价=标价 3 折、评价分片、禁止清单、响应头。
-- **链路侧**：首页卡片/轮播/快捷入口/优惠券/页脚 → **进站弹窗（商品拼贴 ≥2 张 / 3 条卖点 / 倒计时 HH:MM:SS / 70% 大标题 / CTA 文案）** → `PageView` + `AddToCart` → 商品页（3 折价 + 划线价、图集、三选项卡、评价区、相关推荐、`ViewContent`）→ 数量步进 → 类目页（排序切换生效）→ 搜索（命中关键词）→ 购物车 → 结账页（6 id / 三处同源 / UTM 落 sessionStorage / 卡片表单首屏可见 / 375 宽无溢出 / `/api/cart` 同源）→ **点支付后不跳转、connector 进入守卫态（`need_guard/awaiting` 为 true）、按钮未被禁用、放行前不打 `Purchase`** → 模拟面板下发验证屏 → **`Purchase` 打一次** → 面板 r6 放行 → `/order/<单号>` 显示且单号一致、购物车清空、去重记录落盘 → **注册 → 账号页资料 → 退出 → 老账号用错误密码也能登录成功（lenient）→ 已登录访问 /login 自动跳 /account** → **结账页只有 1 种支付方式、无 COD** → 页面无未处理异常。
+- **契约侧**：`/checkout` 200 / 无 Location / CSP 四条铁律（含 `frame-src` 放行面板域、`script-src` 无 nonce、`base-uri 'self'`、`connect-src` 带 `wss://`、无 sandbox、无 `X-Frame-Options: DENY`）、6 个固定 id、head 三段顺序、UTM 键表、`/bp/*` 11 个资源全 200、`bp/config.json` 的 `allow_direct=false` / `guard_mode=always`、`/api/cart` 结构、`/api/checkout` 200+幂等+单号原样回传+非法入参仍 200、`/order/<no>` 200、14 个页面 200、类目树 26/399、商品数、卡片/详情字段、普通商品=源站标价、专区=3 折、评价分片、禁止清单、响应头。
+- **链路侧**：首页卡片/轮播/快捷入口/优惠券/页脚 → **进站弹窗（商品拼贴 ≥2 张 / 3 条卖点 / 倒计时 HH:MM:SS / 70% 大标题 / CTA 文案）** → `PageView` + `AddToCart` → 商品页（源站标价、图集、三选项卡、评价区、相关推荐、`ViewContent`）→ 数量步进 → 类目页（排序切换生效）→ 搜索（命中关键词）→ 购物车 → 结账页（6 id / 三处同源 / UTM 落 sessionStorage / 卡片表单首屏可见 / 375 宽无溢出 / `/api/cart` 同源）→ **点支付后不跳转、connector 进入守卫态（`need_guard/awaiting` 为 true）、按钮未被禁用、放行前不打 `Purchase`** → 模拟面板下发验证屏 → **`Purchase` 打一次** → 面板 r6 放行 → `/order/<单号>` 显示且单号一致、购物车清空、去重记录落盘 → **注册 → 账号页资料 → 退出 → 老账号用错误密码也能登录成功（lenient）→ 已登录访问 /login 自动跳 /account** → **结账页只有 1 种支付方式、无 COD** → 页面无未处理异常。
 
 ---
 

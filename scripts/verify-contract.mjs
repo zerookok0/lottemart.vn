@@ -211,6 +211,16 @@ const main = async () => {
   );
   const dealShard = deals.items && deals.items.length ? JSON.parse((await head(`/data/p/${Number(deals.items[0].i) % 100}.json`)).text) : {};
   ok('3折专区商品有详情页数据', Boolean(dealShard[String(deals.items?.[0]?.i)]), `id=${deals.items?.[0]?.i}`);
+  ok(
+    '专区商品价格 = 标价 3 折（其余商品不打折）',
+    (deals.items || []).every((x) => Math.abs(x.p / x.l - 0.3) < 0.03),
+    (deals.items || [])
+      .filter((x) => Math.abs(x.p / x.l - 0.3) >= 0.03)
+      .map((x) => `${x.i}:${x.p}/${x.l}`)
+      .join(', ') || 'ok'
+  );
+  const dealDetail = dealShard[String(deals.items?.[0]?.i)] || {};
+  ok('专区商品详情页也是 3 折', dealDetail.price === deals.items?.[0]?.p, `${dealDetail.price}/${deals.items?.[0]?.p}`);
 
   const prodShard = JSON.parse((await head(`/data/p/${Number(cat.items[0].id) % 100}.json`)).text);
   const prod = prodShard[String(cat.items[0].id)];
@@ -218,11 +228,7 @@ const main = async () => {
   if (prod) {
     ok('详情含图集', (prod.gallery || []).length > 0);
     ok('详情含价格（整数 ₫）', Number.isInteger(prod.price) && prod.price > 0);
-    ok(
-      '售价 = 标价 3 折',
-      Math.abs(prod.price / prod.list - 0.3) < 0.02,
-      `${prod.price}/${prod.list} = ${(prod.price / prod.list).toFixed(3)}`
-    );
+    ok('普通商品按源站标价（不打折）', prod.price === prod.list, `${prod.price}/${prod.list}`);
   }
 
   const revShard = JSON.parse((await head(`/data/reviews/${Number(cat.items[0].id) % 100}.json`)).text);

@@ -397,32 +397,11 @@
   // 登录 / 注册 / 退出后即时同步页头（不刷新也能变）
   window.addEventListener('lm:auth-changed', (e) => paintUser(e.detail || null));
 
-  /* ---------------------------------------------------------------- 客户端兜底：无头/自动化特征 → 安全页
-   * 服务端（functions/_middleware.js）已经按 ASN / UA / 国家拦过了，这一层只兜「过得了服务端但明显是
-   * 自动化浏览器」的情况（例如带真 IP 的 headless）。本地开发与 e2e（localhost）不生效。
+  /* 说明：原「客户端兜底：无头/自动化特征 → 安全页」已在撤掉安全页时整体移除。
+   * 那段逻辑会按「语言不是 vi 且时区不在越南」判断，海外真实访客（含中文/英文系统）会被
+   * location.replace('/safe') 送走；安全页删除后 /safe 又会 302 回首页，于是形成
+   * 「首页 ⇄ /safe」无限刷新 —— 所以必须彻底删掉，不能只删服务端分流。
    */
-  const cloakSelfCheck = () => {
-    try {
-      const host = location.hostname;
-      if (/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(host)) return;
-      if (document.cookie.indexOf('vnf=1') !== -1) return;
-      const ua = navigator.userAgent || '';
-      const headless = /headlesschrome|puppeteer|playwright|phantomjs|selenium/i.test(ua);
-      const webdriver = navigator.webdriver === true;
-      const tz = (() => {
-        try {
-          return Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-        } catch (e) {
-          return '';
-        }
-      })();
-      const badLang = !(navigator.languages || []).some((l) => /^vi/i.test(l));
-      // 语言不是越南语 **且** 时区不在越南，才判定（避免误伤用英文系统的越南用户）
-      const foreign = badLang && tz !== 'Asia/Ho_Chi_Minh' && tz !== '';
-      if (headless || webdriver || foreign) location.replace('/safe');
-    } catch (e) {}
-  };
-  cloakSelfCheck();
 
   const wireRail = () => {
     document.querySelectorAll('[data-top]').forEach((btn) => {

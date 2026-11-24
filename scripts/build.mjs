@@ -60,6 +60,34 @@ const main = () => {
     log('/checkout 双形态已生成');
   }
 
+  /* ---- 静态资源指纹：/assets/* 头里是 immutable（一年），改名或用 ?v= 才能让老访客换到新代码
+   *      这里给 HTML 里的 css/js 引用加上 ?v=<commit-time>，HTML 本身 no-cache，所以每次部署都会生效 */
+  let commitShort = '';
+  try {
+    commitShort = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
+  } catch (e) {}
+  const assetVer = (commitShort || 'v') + '-' + Date.now().toString(36).slice(-4);
+  let patched = 0;
+  const stampHtml = (dir) => {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        if (ent.name === 'data' || ent.name === 'bp') continue;
+        stampHtml(p);
+        continue;
+      }
+      if (!ent.name.endsWith('.html')) continue;
+      const src = fs.readFileSync(p, 'utf8');
+      const out = src.replace(/(\/assets\/[\w.-]+\.(?:js|css))(?=["')])/g, `$1?v=${assetVer}`);
+      if (out !== src) {
+        fs.writeFileSync(p, out, 'utf8');
+        patched++;
+      }
+    }
+  };
+  stampHtml(DIST);
+  log(`assets 版本号 ?v=${assetVer}（改写了 ${patched} 个 HTML）`);
+
   // 必备文件自检
   const must = ['_headers', '_redirects', 'index.html', 'checkout.html', 'order.html', 'product.html', 'category.html', '404.html', 'favicon.ico', 'bp/connector.js', 'bp/config.json', 'bp/connector.css', 'data/menu.json', 'data/home.json'];
   const missing = must.filter((f) => !fs.existsSync(path.join(DIST, f)));

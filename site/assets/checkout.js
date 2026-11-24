@@ -62,7 +62,13 @@
   };
   setText('[data-order-label]', 'Đơn hàng ' + orderNumber);
   setText('[data-list]', money(listTotal));
-  setText('[data-saved]', '-' + money(Math.max(0, listTotal - total)));
+  const saved = Math.max(0, listTotal - total);
+  const savedEl = $('[data-saved]');
+  if (savedEl) {
+    const row = savedEl.closest('[data-saved-row]') || savedEl.parentElement;
+    if (saved > 0) setText('[data-saved]', '-' + money(saved));
+    else if (row) row.style.display = 'none';
+  }
   setText('[data-total]', totalAmount);
 
   /* ---------- 2. __BP_CART__：原地 mutate，绝不换对象（契约 §5.1） ---------- */

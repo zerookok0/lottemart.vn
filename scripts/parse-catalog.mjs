@@ -22,7 +22,7 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const RAW = path.join(ROOT, 'raw');
 const DATA = path.join(ROOT, 'data');
 const SHARDS = 100;
-const DISCOUNT = 0.6;
+const DISCOUNT = 1; // 售价 = 源站标价（不打折）；要 6 折改 0.6
 
 const log = (...a) => console.log(...a);
 const writeJson = (file, obj) => {

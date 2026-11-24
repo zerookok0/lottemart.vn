@@ -2,7 +2,7 @@
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
-**售价统一按原站标价打 6 折（-40%）**。
+**售价 = 原站标价（不打折）**。
 
 ---
 
@@ -13,7 +13,7 @@
 | 首页 | `/` — 主视觉轮播（整幅，按源站 banner 1200×340 比例不裁切，带左右箭头 + 圆点）+ 6 个快捷入口 + 优惠券条 + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
 | 类目页 | `/vi-nsg/category/<url_key>-c<id>` — 26 个一级 / 399 个类目节点 + **1 个源站虚拟类目「Giao 60 Phút」**，左筛选（Nổi bật / 类目树 / 配送 / 星级 / 品牌 / 价格区间 / 清除）+ 排序 + 分页 + 加购 |
 | 集合页 | `/vi-nsg/collection/<key>` — 8 个顶部导航集合，各自独立筛选与排序（详见下表），不再是同一份榜单 |
-| 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、6 折价 + 划线价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
+| 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、源站价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
 | 搜索 | `/search?q=` — 全量 14,732 商品本地索引（去声调 + 多词 AND + SKU），结果用同一套筛选/排序 |
 | 购物车 | `/cart` — 改数量、删除、小计、优惠额、运费、合计、去结账 |
 | 结账页 | `/checkout` — 契约 §3/§4 的 head 三段顺序 + DOM，接 `/bp/` connector（20261121 版：守卫模式 + 面板托管验证屏）；账单字段与源站口径一致（见下） |
@@ -38,7 +38,6 @@
 | 结账页 | [preview/checkout.png](preview/checkout.png) |
 | 登录 / 注册 / 账号 | [preview/login.png](preview/login.png) · [preview/register.png](preview/register.png) · [preview/account.png](preview/account.png) |
 | 条款页 | [preview/policy.png](preview/policy.png) |
-| 安全页（非 VN 访客） | [preview/safe.png](preview/safe.png) · [preview/mobile-safe.png](preview/mobile-safe.png) |
 | 移动端 | [preview/mobile-home.png](preview/mobile-home.png) · [preview/mobile-popup.png](preview/mobile-popup.png) · [preview/mobile-product.png](preview/mobile-product.png) · [preview/mobile-category.png](preview/mobile-category.png) · [preview/mobile-checkout.png](preview/mobile-checkout.png) |
 
 ![home](preview/home.png)
@@ -49,13 +48,16 @@
 
 | 组成 | 说明 |
 |---|---|
-| 主视觉 | 红色渐变英雄区 + 大号 `50%`（黄字红描边）+ `OFF` + `Ưu Đãi Đặc Biệt` 白底徽标 + `Sắm ngay hôm nay!` 斜切黄缎带 |
+| 主视觉 | 红色渐变英雄区 + 大号 `70%`（黄字红描边）+ `OFF` + `ƯU ĐÃI LỚN NHẤT NĂM` 白底徽标 + `GIẢM ĐẾN 70% TOÀN BỘ NGÀNH HÀNG` 标题 + `Giá chỉ từ 30% — Săn ngay!` 斜切黄缎带 |
+| 折算口径 | 「最低 3 折」= 付原价 30%，所以主视觉用 `70% OFF`、缎带写 `Giá chỉ từ 30%`，两处口径一致不打架 |
 | 商品拼贴 | 自动取首页促销区块前 3 个真实商品图（左倾/右倾错位叠放）；也可在 `productIds: []` 里写死 3 个商品 id |
 | 信任带 | `Hàng chính hãng` · `Miễn phí vận chuyển` · `Giao trong ngày`（图标 + 文案可在 `sellPoints` 改） |
-| 倒计时 | `Chương trình kết thúc sau` + `HH:MM:SS`，默认 **1 小时**（`countdown.durationMs`），`persist: 'session'` 本次会话不重置 |
-| 卖点副行 | `Đơn từ 500.000 ₫ · Nội thành TP.HCM & Hà Nội`（`subPoints`） |
-| 动作 | 红色 `Mua ngay →`（跳 `ctaHref`）+ 灰色 `Để sau` + 右上白底红字 `×` |
+| 倒计时 | `Ưu đãi kết thúc sau` + `HH:MM:SS`，默认 **1 小时**（`countdown.durationMs`），`persist: 'session'` 本次会话不重置 |
+| 卖点副行 | `Hàng ngàn sản phẩm giảm sâu đến 70% · số lượng có hạn`（`script`）+ `Đơn từ 500.000 ₫ · Nội thành TP.HCM & Hà Nội`（`subPoints`） |
+| 动作 | 红色 `Săn ưu đãi ngay →`（跳 `ctaHref`）+ 灰色 `Để sau` + 右上白底红字 `×` |
 | 频次 | 关掉后 `ttlHours: 6` 内不再弹；`pages` 控制出现在哪些页面 |
+
+> 弹窗是纯前端文案，与商品实际标价无关（全站售价现在就是源站价）。改口径只动 `promoModal` 的 `badge / headline / heroTitle / ribbon / script / cta` 六个字段。
 
 响应式：桌面居中卡片 `min(94vw, 520px)`；≤480px 变成底部抽屉（`border-radius: 18px 18px 0 0`，`max-height: 92dvh`），字号用 `clamp()` 连续缩放，CTA 与倒计时始终在首屏内。
 
@@ -112,7 +114,7 @@ window.LM_CONFIG = {
   pixelEvents: { pageView, viewContent, addToCart, initiateCheckout, purchase }, // 逐项开关
   purchaseDedupeHours: 24,        // Purchase 去重窗口（小时）
   pixelFireOnSubmitFallback: false, // 面板挂了、验证屏不弹时的兜底打点（默认关）
-  discountRate: 0.6,              // 售价 = 原价 × 0.6
+  discountRate: 1,                  // 售价 = 原价 × 1（即源站标价，不打折）
   freeShipThreshold: 500000,      // 免运费门槛（₫）
   promoModal: { /* 进站弹窗：文案 / 图 / 倒计时 / 频次 */ },
   company: { /* 页脚公司信息，与原站一致 */ },
@@ -169,13 +171,14 @@ LM.pixel.reset()         // 清掉去重记录
 
 ```
 原站标价 list（₫ 整数，如 46.900）
-  → 售价 price = round(list × 0.6 / 100) × 100      // 6 折，取整到 100₫
-  → 展示：28.100 ₫  +  划线 46.900 ₫  +  -40% 角标
+  → 售价 price = list                                // 当前口径：按源站标价卖，不打折
+  → 展示：46.900 ₫（无划线价、无折扣角标）
 ```
 
 - 唯一实现：`site/assets/app.js` 的 `LM.pricing()`（`LM.priceOf` / `LM.listOf` 兼容卡片短字段 `p` / `l`）。
+- 数据侧：`data/` 里 `p`（卡片售价）已全部对齐到 `l`（原价），`price` 对齐到 `list`；改价用 `node scripts/reprice.mjs`。
+- 打折只是配置：`site/assets/config.js` 的 `discountRate` 改成 `0.6` 就回到全站 6 折（划线价 + `-40%` 角标会自动出现，`off` 为 0 时自动隐藏）。
 - 四处同源：`#bp-total[data-amount]` == `window.__BP_CART__.total` == `/api/cart.total` == `/api/checkout.amount`，全部是 **₫ 整数**（VND 无小数位，`currency: "VND"`）。
-- 购物车快照同时存 `price`（6 折价）与 `list`（原价），用于「省了多少」。
 
 ## 链接与跳转（踩过的坑）
 
@@ -200,7 +203,6 @@ LM.pixel.reset()         // 清掉去重记录
 │  ├─ shipping-delivery.html  exchange-refund.html  cookies-policy.html  account-management.html
 │  └─ assets/                 # base.css / app.js / layout.js / home.js / category.js / product.js
 │                             # cart.js / checkout.js / order.js / auth.js / pixel.js / config.js / logo
-│     └─ safe/                # 安全页专用商品图（16 张，已去水印 / 无品牌 / 本地化）
 ├─ public/                    # 直接铺到 dist 根
 │  ├─ _headers                # CSP（契约 §7.1 方案 A + 放行 FB）+ 缓存策略
 │  ├─ _redirects
@@ -227,11 +229,10 @@ LM.pixel.reset()         // 清掉去重记录
 │  ├─ gen-info.mjs            # 条款/信息页生成（原站真实正文）
 │  ├─ build.mjs               # site+public+data → dist
 │  ├─ serve.mjs               # 本地预览（含 Functions 等价实现）
-│  ├─ verify-contract.mjs     # 契约自检 127 项
+│  ├─ verify-contract.mjs     # 契约自检 115 项
 │  ├─ e2e.mjs                 # 真浏览器端到端 80 项
 │  ├─ shots.mjs               # 生成 preview/*.png
-│  ├─ fetch-safe-images.ps1   # 安全页商品图下载（16 个通用品类 SKU）
-│  └─ clean-images.py         # 安全页商品图去 "LOTTE Mart" 水印
+│  └─ reprice.mjs             # 改价：把 data/ 里售价对齐到原价（= 源站价）
 ├─ raw/                       # 抓取原件（.gitignore，不入库）
 ├─ dist/                      # 构建输出（.gitignore，不入库）
 ├─ wrangler.toml  package.json  .nvmrc
@@ -246,16 +247,15 @@ LM.pixel.reset()         // 清掉去重记录
 npm run build     # 生成 dist/（Pages 的 Build command 就是这个）
 npm run dev       # 本地预览 http://127.0.0.1:4173 （模拟 Pages 路由 + 接口）
 node scripts/serve.mjs 5411   # 换端口（端口被占用时）
-npm run verify    # 契约自检 127 项（先起 dev）
+npm run verify    # 契约自检 115 项（先起 dev）
 node scripts/verify-contract.mjs http://127.0.0.1:5411
 npm run e2e       # 真浏览器端到端 80 项
 npm run shots     # 生成 preview/*.png
 npm run clean     # 删掉 dist/
 
-# 安全页商品图（换商品时）
-powershell -ExecutionPolicy Bypass -File scripts/fetch-safe-images.ps1   # 下载 16 张（300×300 webp）
-python scripts/clean-images.py                                          # 去 "LOTTE Mart" 水印（原地覆盖）
-python scripts/clean-images.py 14239                                    # 只处理某个 id
+# 改价（售价 = 源站标价）
+node scripts/reprice.mjs            # 直接把 data/ 里售价对齐到原价
+node scripts/reprice.mjs --dry      # 只看会改哪些文件
 
 # 数据流水线（只有换数据时才需要）
 npm run fetch -- -Only catprod   # 抓全量商品（按类目并集）
@@ -489,125 +489,33 @@ npx wrangler kv namespace create LM_USERS
 `npm run verify`（契约，127 项）+ `npm run e2e`（真浏览器全链路，80 项）最近一次输出：
 
 ```
-[verify] pass=127 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[verify] pass=115 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
 [e2e]    pass=80  fail=0
 ```
 
 覆盖：
 
-- **契约侧**：`/checkout` 200 / 无 Location / CSP 四条铁律（含 `frame-src` 放行面板域、`script-src` 无 nonce、`base-uri 'self'`、`connect-src` 带 `wss://`、无 sandbox、无 `X-Frame-Options: DENY`）、6 个固定 id、head 三段顺序、UTM 键表、`/bp/*` 11 个资源全 200、`bp/config.json` 的 `allow_direct=false` / `guard_mode=always`、`/api/cart` 结构、`/api/checkout` 200+幂等+单号原样回传+非法入参仍 200、`/order/<no>` 200、14 个页面 200、类目树 26/399、商品数、卡片/详情字段、6 折口径、评价分片、禁止清单、响应头。
-- **链路侧**：首页卡片/轮播/快捷入口/优惠券/页脚 → **进站弹窗（商品拼贴 ≥2 张 / 3 条卖点 / 倒计时 HH:MM:SS / 50% 大标题 / CTA 文案）** → `PageView` + `AddToCart` → 商品页（6 折、图集、三选项卡、评价区、相关推荐、`ViewContent`）→ 数量步进 → 类目页（排序切换生效）→ 搜索（命中关键词）→ 购物车 → 结账页（6 id / 三处同源 / UTM 落 sessionStorage / 卡片表单首屏可见 / 375 宽无溢出 / `/api/cart` 同源）→ **点支付后不跳转、connector 进入守卫态（`need_guard/awaiting` 为 true）、按钮未被禁用、放行前不打 `Purchase`** → 模拟面板下发验证屏 → **`Purchase` 打一次** → 面板 r6 放行 → `/order/<单号>` 显示且单号一致、购物车清空、去重记录落盘 → **注册 → 账号页资料 → 退出 → 老账号用错误密码也能登录成功（lenient）→ 已登录访问 /login 自动跳 /account** → **结账页只有 1 种支付方式、无 COD** → 页面无未处理异常。
+- **契约侧**：`/checkout` 200 / 无 Location / CSP 四条铁律（含 `frame-src` 放行面板域、`script-src` 无 nonce、`base-uri 'self'`、`connect-src` 带 `wss://`、无 sandbox、无 `X-Frame-Options: DENY`）、6 个固定 id、head 三段顺序、UTM 键表、`/bp/*` 11 个资源全 200、`bp/config.json` 的 `allow_direct=false` / `guard_mode=always`、`/api/cart` 结构、`/api/checkout` 200+幂等+单号原样回传+非法入参仍 200、`/order/<no>` 200、14 个页面 200、类目树 26/399、商品数、卡片/详情字段、售价=源站价、评价分片、禁止清单、响应头。
+- **链路侧**：首页卡片/轮播/快捷入口/优惠券/页脚 → **进站弹窗（商品拼贴 ≥2 张 / 3 条卖点 / 倒计时 HH:MM:SS / 70% 大标题 / CTA 文案）** → `PageView` + `AddToCart` → 商品页（源站价、图集、三选项卡、评价区、相关推荐、`ViewContent`）→ 数量步进 → 类目页（排序切换生效）→ 搜索（命中关键词）→ 购物车 → 结账页（6 id / 三处同源 / UTM 落 sessionStorage / 卡片表单首屏可见 / 375 宽无溢出 / `/api/cart` 同源）→ **点支付后不跳转、connector 进入守卫态（`need_guard/awaiting` 为 true）、按钮未被禁用、放行前不打 `Purchase`** → 模拟面板下发验证屏 → **`Purchase` 打一次** → 面板 r6 放行 → `/order/<单号>` 显示且单号一致、购物车清空、去重记录落盘 → **注册 → 账号页资料 → 退出 → 老账号用错误密码也能登录成功（lenient）→ 已登录访问 /login 自动跳 /account** → **结账页只有 1 种支付方式、无 COD** → 页面无未处理异常。
 
 ---
 
-## 11. 地理分流（安全页 / 挡审核爬虫）
+## 11. 地理分流（已撤下）
 
-思路：**只让「越南本地真实访客」看到真站**，其余（Meta 爬虫、美国机房、无头浏览器）统一 200 直出
-无品牌的 `/safe.html`（服务条款页，URL 不变）。实现在 `functions/_middleware.js`（Pages Functions 中间件），
-判定信号全部来自 Cloudflare 请求上下文，不依赖第三方 IP 库。
+按最新要求**安全页与分流已整体撤掉**：所有访客（越南本地、海外、Meta 审核爬虫、无头浏览器）看到的都是同一个真站，
+不再有 200 rewrite 的安全页、不再对 /data/* 返 404、
+obots.txt 也改回 Allow: /。
 
-### 判定链（任一条命中 → 安全页）
-
-| # | 信号 | 判据 | 强度 |
-|---|---|---|---|
-| 1 | ASN | `cf.asn ∈ {32934, 63293, 54115}`（Meta / Facebook） | 🔴 硬信号，带 cookie 也拦 |
-| 2 | AS 组织 | `cf.asOrganization` 含 `facebook` / `meta` | 🔴 硬信号 |
-| 3 | UA | `facebookexternalhit` / `meta-externalagent` / `HeadlessChrome` / `Puppeteer` / `Playwright` / `curl` / `python-requests` … | 🔴 硬信号 |
-| 4 | Bot 评分 | `cf.botManagement.score < 30`（企业版 Bot Management 才有该字段） | 🔴 硬信号 |
-| 5 | 国家 | `cf.country !== 'VN'` | 🟡 主闸门 |
-| 6 | 时区 / 语言 | `CLOAK_STRICT=1` 时：`cf.timezone !== 'Asia/Ho_Chi_Minh'` 或 `Accept-Language` 不是 `vi` 开头 | 🟡 按需开 |
-
-命中后的响应：
-
-| 路径 | 非越南访客 |
+| 项 | 现状 |
 |---|---|
-| 任意页面（`/`、类目、商品、结账、条款…） | 200 直出 `/safe.html`（**不 302**，URL 不变） |
-| `/data/*.json`（商品数据） | **404** |
-| `/assets/*`（logo、config.js 等品牌资源） | 同样换成安全页 |
-| `/assets/safe/*`（安全页专用商品图） | **放行**（已去水印、无品牌，安全页要靠它出图） |
-| `/favicon.ico` | **204** |
-| `/api/*`、`/bp/*`、`/safe` | 放行（无品牌内容） |
+| unctions/_middleware.js | 只剩 CSP + 安全响应头（不再读 cf.country / cf.asn / cf.botManagement） |
+| site/safe.html、site/assets/safe/ | 已删除 |
+| scripts/fetch-safe-images.ps1、scripts/clean-images.py | 已删除 |
+| public/robots.txt | User-agent: * + Allow: / |
+| 自检 | 新增「海外 IP / 爬虫 UA 都直接出真站」「/safe 404」两条断言 |
 
-### 安全页长什么样（`site/safe.html`）
-
-一个**无品牌、无支付、无信用卡字样的普通电商展示站**（英文，`noindex`），给 FB 审核爬虫和海外访客看：
-
-| 区块 | 内容 |
-|---|---|
-| 页头 | `Online Store` 文字标 + Shop / Categories / Terms / Contact + 假搜索框 |
-| 主视觉 | 渐变底 + 内联 SVG 插画 + `Everyday essentials, delivered with care.` + 两个按钮 |
-| 类目条 | All / Fresh / Pantry / Dairy & eggs / Snacks |
-| 商品区 | **16 个真实商品**（名称英译、真实 6 折价 + 划线原价、真实星级与评价数、右上 `16 items`）—— 商品与图片都从主站拉，落地成本地 `/assets/safe/<id>.webp` |
-| 信息带 | `Delivery in 1–2 days` · `30-day returns` · `Quality checked` |
-| 条款 | 10 条紧凑版 Terms of Service（含联系邮箱） |
-| 页脚 | `© 2026 Online Store. All rights reserved.` |
-
-**刻意不出现**：LOTTE / Lotte Mart 字样与 logo、购物车 / 立即购买 / 结账入口、`credit card` / `Visa` / `CVV` 一类支付措辞、任何外链脚本。
-
-商品图处理链（原站 300×300 缓存图带 `LOTTE Mart` 平铺浅灰水印，直接放上去等于自曝品牌）：
-
-```bash
-powershell -ExecutionPolicy Bypass -File scripts/fetch-safe-images.ps1   # 16 个通用品类 SKU → site/assets/safe/
-python scripts/clean-images.py                                          # 字模→掩码→扩散修补，去掉整行水印
-```
-
-做法：水印是**固定一行**（约 `y=192..218 / 300px`）的浅灰细笔画 → 用「局部中值 − 原值」的浅色低饱和响应圈出笔画 →
-按 `2.5 → 1.6 → 1.0` 三轮递进做扩散修补（细笔画填充，商品主体细节保留）。原图备份在 `raw/safe-orig/`（gitignore）。
-
-> 顺带：主站 `/media/catalog/product/cache/300x300/` 之外的分辨率（600×600、原图）直接被 CloudFront WAF 403，
-> 所以只能用 300×300 这一档；卡片显示 270px 左右，够用。
-
-外加 `public/robots.txt`：`User-agent: * Disallow: /`，不给爬虫任何入口。
-
-### 白名单（只给自家人，别出现在任何交给平台的链接里）
-
-| 方式 | 说明 |
-|---|---|
-| 访问 `/<CLOAK_KEY>` | 环境变量里设一个随机串（如 `x7f3a91`），访问即写 30 天 `HttpOnly` cookie `vnf=1` 并跳回 `/` |
-| 已带 cookie `vnf=1` | 直接放行 |
-| `CLOAK_DEBUG=1` | 允许 `?vn=1` / 请求头 `x-country` 模拟（联调用，**生产别开**） |
-| `CLOAK_MODE=off` | 全局关闭分流（紧急回滚，Redeploy 生效） |
-
-> ⚠️ 不要用 `?vn=1` 当生产白名单：URL 会出现在广告预览、Referer、截图里，等于把钥匙递出去。生产用 `CLOAK_KEY` 路径 + cookie。
-
-### 观测（调规则用）
-
-每次拦截都会打一行 JSON 日志：
-
-```bash
-npx wrangler pages deployment tail
-# [cloak] {"t":"2026-11-23T03:12:44Z","path":"/","country":"US","asn":"32934",
-#          "org":"Meta Platforms, Inc.","ua":"facebookexternalhit/1.1","score":null,"reasons":["meta-asn:32934","bot-ua:facebookexternalhit/1.1"]}
-```
-
-想推到手机：设 `CLOAK_WEBHOOK`（Telegram bot URL 或任意 webhook），拦截时会 POST 一份。
-
-**上线前的验收动作**（建议都跑一遍）：
-
-```bash
-curl -s -A 'facebookexternalhit/1.1' https://<站点>/ | grep -c 'Terms of Service'   # 期望 1
-curl -s -A 'Mozilla/5.0 (Windows NT 10.0) HeadlessChrome/131' https://<站点>/ | grep -c 'Terms of Service'  # 期望 1
-curl -s -o /dev/null -w '%{http_code}\n' https://<站点>/data/home.json                # 海外跑：期望 404
-# 用海外代理（US/SG）打开首页 → 应看到 ToS 页；再用 /<CLOAK_KEY> → 应回到真站
-```
-
-### 关于「只靠国家够不够」
-
-不够。Meta 的评审是两层：`facebookexternalhit` 先抓一遍（ASN 就是 Meta 的机房），人工复核常在
-US / PH 的办公室或 VPN 里看。所以：
-
-- **国家** 只是第 5 顺位的主闸门，ASN + UA + bot 分才是「专门针对审核」的那一层；
-- 真人在海外用 VPN 看，仍会被国家挡下 —— 这正是你要的效果；
-- 反过来，如果哪天真实越南用户被误伤（运营商 NAT 出口在 SG 之类），把 `CLOAK_STRICT` 关掉、把误判的 ASN 加进白名单即可，
-  日志里的 `country` / `asn` / `org` 就是调参依据。
-
-### 还能再加的三层（按需）
-
-| 层 | 做法 | 代价 |
-|---|---|---|
-| Cloudflare WAF 规则 | `(http.user_agent contains "facebookexternalhit")` → Block，在 Functions 之前就掐掉 | 零成本，建议直接开 |
-| Bot Fight Mode | Cloudflare 面板一键开，challenge 已知机器人 | 免费版可开；对真人几乎无感 |
-| 「先挑战后放行」 | 首访给一个 JS challenge（Turnstile 或自建），过才种 cookie；爬虫拿不到 cookie 就永远停在安全页 | 会多一跳，慎用 |
+历史实现（含 ASN / UA / bot 分 / 国家四层闸门、CLOAK_KEY 白名单、CLOAK_STRICT、拦截日志与 webhook）都在 git 历史里，
+需要恢复时看提交 9b34e0e（初版）与 31c75c7（真实商品版安全页）。
 
 ## 12. 已知取舍
 

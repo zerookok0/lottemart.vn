@@ -206,8 +206,8 @@ const main = async () => {
   ok('商品详情分片可取', Boolean(prod));
   if (prod) {
     ok('详情含图集', (prod.gallery || []).length > 0);
-    ok('详情含价格（6 折整数）', Number.isInteger(prod.price) && prod.price < prod.list);
-    ok('6 折口径正确', Math.abs(prod.price / prod.list - 0.6) < 0.02, `${prod.price}/${prod.list}`);
+    ok('详情含价格（整数 ₫）', Number.isInteger(prod.price) && prod.price > 0);
+    ok('售价与源站一致（= 原价）', prod.price === prod.list, `${prod.price}/${prod.list}`);
   }
 
   const revShard = JSON.parse((await head(`/data/reviews/${Number(cat.items[0].id) % 100}.json`)).text);
@@ -224,45 +224,17 @@ const main = async () => {
   ok('首页无 <base>', !/<base\s/i.test(idx.text));
   ok('首页无 service worker', !/serviceWorker\.register/.test(idx.text));
 
-  /* ---------------- 10. 地理分流（非 VN → 安全页） ---------------- */
-  section('11. 地理分流（安全页）');
-  const vnHome = await head('/?country=VN');
-  ok('越南 IP 正常出站（真站首页）', /LOTTE/i.test(vnHome.text) && vnHome.status === 200);
-  const jpHome = await head('/?country=JP');
-  ok('非越南 IP 访问首页 → 安全页 200', jpHome.status === 200 && /Online Store/.test(jpHome.text), `status=${jpHome.status}`);
-  ok('安全页内容是服务条款（Terms of Service）', /Terms of Service/.test(jpHome.text));
-  ok('安全页无品牌字样', !/lotte|lottemart|mart việt nam/i.test(jpHome.text));
-  ok(
-    '安全页无信用卡相关字样',
-    !/credit\s*card|visa|mastercard|amex|jcb|cvv|card number|thẻ tín dụng|thẻ ghi nợ/i.test(jpHome.text),
-    (jpHome.text.match(/credit\s*card|visa|mastercard|amex|jcb|cvv|card number|thẻ tín dụng/gi) || []).join(', ')
-  );
-  const jpCat = await head('/vi-nsg/category/rau-cu-c3?country=JP');
-  ok('非越南 IP 访问类目页 → 安全页', /Online Store/.test(jpCat.text) && !/LOTTE/i.test(jpCat.text));
-  const jpCheckout = await head('/checkout?country=JP');
-  ok('非越南 IP 访问结账页 → 安全页', /Online Store/.test(jpCheckout.text) && !/LOTTE/.test(jpCheckout.text));
+  /* ---------------- 10. 分流已撤下：所有访客同一真站 ---------------- */
+  section('11. 无分流（安全页已撤）');
+  const overseaHome = await head('/?country=JP');
+  ok('海外 IP 也直接出真站首页', overseaHome.status === 200 && /LOTTE/i.test(overseaHome.text));
+  ok('不再返回安全页内容', !/Terms of Service/.test(overseaHome.text));
+  const botHome = await head('/?bot=1');
+  ok('爬虫 UA 也直接出真站', /LOTTE/i.test(botHome.text) && !/Online Store/i.test(botHome.text));
   const jpData = await head('/data/home.json?country=JP');
-  ok('非越南 IP 拿不到商品数据（404）', jpData.status === 404, `status=${jpData.status}`);
-  const jpLogo = await head('/assets/logo-lotte.svg?country=JP');
-  ok('非越南 IP 拿不到品牌 logo（不返回 svg）', !/^<svg/i.test(jpLogo.text), jpLogo.text.slice(0, 40));
-  const safeDirect = await head('/safe');
-  ok('/safe 可直达', safeDirect.status === 200 && /Online Store/.test(safeDirect.text));
-  const safeImgs = new Set(jpHome.text.match(/\/assets\/safe\/[\w-]+\.webp/g) || []);
-  ok('安全页含真实商品图（≥12 张）', safeImgs.size >= 12, `imgs=${safeImgs.size}`);
-  ok('安全页商品图无品牌域名（本地化）', !/lottemart\.vn\/media/.test(jpHome.text));
-  const safeImg = await head('/assets/safe/232613.webp?country=JP');
-  ok(
-    '非越南 IP 可加载安全页商品图（image/webp）',
-    safeImg.status === 200 && /image\/webp/.test(safeImg.headers.get('content-type') || ''),
-    `status=${safeImg.status} ct=${safeImg.headers.get('content-type')}`
-  );
-  ok('安全页含价格与商品数（16 items）', /16 items/.test(jpHome.text) && /₫/.test(jpHome.text));
-  const botHit = await head('/?bot=1');
-  ok('模拟爬虫 UA（facebookexternalhit 一类）→ 安全页', /Terms of Service/.test(botHit.text) && !/LOTTE/i.test(botHit.text));
-  const robots = await head('/robots.txt');
-  ok('robots.txt 禁止爬取', robots.status === 200 && /Disallow:\s*\//.test(robots.text));
-  const bypass = await head('/?country=JP&vn=1');
-  ok('?vn=1 白名单放行（并写 cookie）', /LOTTE/i.test(bypass.text) && /vnf=1/.test(bypass.headers.get('set-cookie') || ''), bypass.headers.get('set-cookie') || '');
+  ok('商品数据对海外可见（不再 404）', jpData.status === 200, `status=${jpData.status}`);
+  const safeGone = await head('/safe');
+  ok('安全页已删除（404）', safeGone.status === 404, `status=${safeGone.status}`);
 
   /* ---------------- 11. 头/缓存 ---------------- */
   section('12. 响应头与缓存');

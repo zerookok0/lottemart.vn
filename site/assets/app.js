@@ -7,7 +7,9 @@
   const LM = (window.LM = window.LM || {});
 
   const CURRENCY = CFG.currency || 'VND';
-  const DISCOUNT = Number(CFG.discountRate || 0.6);
+  const DISCOUNT = Number(CFG.discountRate || 1);
+  /** 是否打折（=1 时按源站标价卖，不显示划线价与折扣角标） */
+  const HAS_DISCOUNT = DISCOUNT < 0.999;
   const CART_KEY = 'lm_cart';
   const CART_COOKIE = 'lm_cart';
   const FAV_KEY = 'lm_fav';
@@ -22,15 +24,16 @@
   /** 整数₫ → "46.900 ₫" */
   LM.money = (vnd) => `${nf.format(Math.round(Number(vnd) || 0))} ₫`;
 
-  /** 原价 → 6 折价（取整到 100₫）。全站唯一算法。 */
+  /** 原价 → 售价（不打折时等于原价，四舍五入到整数 ₫）。全站唯一算法。 */
   LM.pricing = (listPrice) => {
     const list = Math.max(0, Math.round(Number(listPrice) || 0));
-    const price = Math.max(100, Math.round((list * DISCOUNT) / 100) * 100);
+    const price = HAS_DISCOUNT ? Math.max(100, Math.round((list * DISCOUNT) / 100) * 100) : list;
+    const off = list > 0 ? Math.max(0, Math.round((1 - price / list) * 100)) : 0;
     return {
       list,
       price,
-      discount: list > 0 ? Math.round((1 - price / list) * 100) : 0,
-      offLabel: `-${list > 0 ? Math.round((1 - price / list) * 100) : 0}%`,
+      discount: off,
+      offLabel: off > 0 ? `-${off}%` : '',
     };
   };
 
@@ -324,9 +327,9 @@
       ${sold > 0 ? `<span class="dot"></span><span class="lm-card-sold">Đã bán ${sold}</span>` : ''}
     </div>
     <div class="lm-card-price">
-      <span class="off">-${off}%</span>
+      ${off > 0 ? `<span class="off">-${off}%</span>` : ''}
       <span class="now">${LM.money(price)}</span>
-      <span class="old">${LM.money(list)}</span>
+      ${off > 0 && list > price ? `<span class="old">${LM.money(list)}</span>` : ''}
     </div>
   </div>
 </article>`;
@@ -394,8 +397,9 @@
       cardEl.dataset.name = nameEl ? nameEl.textContent.trim() : '';
       cardEl.dataset.url = nameEl ? nameEl.getAttribute('href') : '#';
       cardEl.dataset.img = imgEl ? imgEl.getAttribute('src') : '';
-      cardEl.dataset.price = String(num(nowEl && nowEl.textContent));
-      cardEl.dataset.list = String(num(oldEl && oldEl.textContent));
+      const nowNum = num(nowEl && nowEl.textContent);
+      cardEl.dataset.price = String(nowNum);
+      cardEl.dataset.list = String(num(oldEl && oldEl.textContent) || nowNum);
     });
   };
 

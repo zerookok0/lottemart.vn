@@ -199,16 +199,17 @@
         <img src="/assets/logo-lotte.svg" alt="LOTTE Mart" width="26" height="26">
         <span>${esc((CFG.promoModal && CFG.promoModal.brand) || 'LOTTE MART')}</span>
       </div>
-      <p class="lm-promo-script">${esc((CFG.promoModal && CFG.promoModal.script) || '').replace(/\n/g, '<br>')}</p>
 
       <div class="lm-promo-collage" data-promo-collage aria-hidden="true"></div>
 
       <span class="lm-promo-badge">${esc((CFG.promoModal && CFG.promoModal.badge) || 'Ưu Đãi Đặc Biệt')}</span>
+      ${CFG.promoModal && CFG.promoModal.headline ? `<p class="lm-promo-headline">${esc(CFG.promoModal.headline)}</p>` : ''}
       <div class="lm-promo-off">
-        <span class="num">${esc((CFG.promoModal && CFG.promoModal.heroTitle) || '50%')}</span>
+        <span class="num">${esc((CFG.promoModal && CFG.promoModal.heroTitle) || '70%')}</span>
         <span class="off">${esc((CFG.promoModal && CFG.promoModal.heroTitleSub) || 'OFF')}</span>
       </div>
-      <span class="lm-promo-ribbon">${esc((CFG.promoModal && CFG.promoModal.ribbon) || 'Sắm ngay hôm nay!')}</span>
+      <span class="lm-promo-ribbon">${esc((CFG.promoModal && CFG.promoModal.ribbon) || 'Chỉ từ 30% giá gốc')}</span>
+      <p class="lm-promo-script">${esc((CFG.promoModal && CFG.promoModal.script) || '').replace(/\n/g, '<br>')}</p>
     </div>
 
     <div class="lm-promo-trust">

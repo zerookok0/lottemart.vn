@@ -1,4 +1,4 @@
-﻿/* 购物车页 */
+/* 购物车页 */
 (function () {
   const LM = window.LM || {};
   const esc = (s) => LM.esc(s);
@@ -34,7 +34,7 @@
     </div>
     <div class="lm-cart-price">
       ${LM.money(it.price)}
-      <span class="old">${LM.money(it.list || it.price)}</span>
+      ${Number(it.list) > Number(it.price) ? `<span class="old">${LM.money(it.list)}</span>` : ''}
     </div>
     <div class="qty">
       <button type="button" data-dec aria-label="Giảm">${LM.icon('minus')}</button>
@@ -59,7 +59,7 @@
 <div class="lm-summary">
   <h2>Tổng đơn hàng</h2>
   <div class="line"><span>Tạm tính (${LM.cart.count()} sản phẩm)</span><b>${LM.money(listTotal)}</b></div>
-  <div class="line saved"><span>Giảm giá</span><b>-${LM.money(saved)}</b></div>
+  ${saved > 0 ? `<div class="line saved"><span>Giảm giá</span><b>-${LM.money(saved)}</b></div>` : ''}
   <div class="line"><span>Phí vận chuyển</span><b>${ship ? LM.money(ship) : 'Miễn phí'}</b></div>
   <div class="total"><span>Tổng cộng</span><b>${LM.money(total + ship)}</b></div>
   <a class="btn btn-block btn-lg" href="/checkout">Tiến hành thanh toán</a>

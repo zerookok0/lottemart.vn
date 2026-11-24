@@ -34,8 +34,7 @@
 </div>
 <div class="lm-pd-price">
   <span class="now">${LM.money(price)}</span>
-  <span class="old">${LM.money(list)}</span>
-  <span class="off">-${off}%</span>
+  ${off > 0 && list > price ? `<span class="old">${LM.money(list)}</span><span class="off">-${off}%</span>` : ''}
 </div>
 <p class="lm-pd-note">Giá sản phẩm đã gồm VAT và chưa gồm phí vận chuyển (nếu có)</p>
 

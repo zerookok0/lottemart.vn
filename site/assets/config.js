@@ -27,9 +27,10 @@ window.LM_CONFIG = {
   siteName: 'LOTTE Mart Việt Nam',
   currency: 'VND',
   locale: 'vi',
-  /* 价格口径：售价 = 原价 × discountRate（再取整到 100₫） */
-  discountRate: 0.6,
-  discountLabel: '-40%',
+  /* 价格口径：售价 = 原价 × discountRate（再取整到 100₫）
+   * 当前 1 = 按源站标价卖（不打折）；改回 0.6 就是全站 6 折 */
+  discountRate: 1,
+  discountLabel: '',
   freeShipThreshold: 500000,
 
   /* ---- 进站弹窗（高 CTR 促销页）---- */
@@ -39,15 +40,16 @@ window.LM_CONFIG = {
     delayMs: 800,
     ttlHours: 6,
 
-    /* 文案 */
-    badge: 'Ưu Đãi Đặc Biệt',
-    heroTitle: '50%',
+    /* 文案（主打「最低 3 折 / 最高减 70%」） */
+    badge: 'Ưu Đãi Lớn Nhất Năm',
+    headline: 'GIẢM ĐẾN 70% TOÀN BỘ NGÀNH HÀNG',
+    heroTitle: '70%',
     heroTitleSub: 'OFF',
-    ribbon: 'Sắm ngay hôm nay!',
-    script: 'Thương hiệu Hàn Quốc\nđược yêu thích tại Việt Nam',
+    ribbon: 'Giá chỉ từ 30% — Săn ngay!',
+    script: 'Hàng ngàn sản phẩm giảm sâu\nđến 70% · số lượng có hạn',
     brand: 'LOTTE MART',
-    countdownLabel: 'Chương trình kết thúc sau',
-    cta: 'Mua ngay',
+    countdownLabel: 'Ưu đãi kết thúc sau',
+    cta: 'Săn ưu đãi ngay',
     ctaHref: '/vi-nsg/collection/uu-dai-hot',
     dismiss: 'Để sau',
 

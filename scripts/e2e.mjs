@@ -161,8 +161,8 @@ const main = async () => {
   ok('弹窗商品拼贴 ≥ 2 张', promoUi.prod >= 2, String(promoUi.prod));
   ok('卖点 3 条（正品/免运费/当日送达）', promoUi.points === 3, String(promoUi.points));
   ok('倒计时 1 小时以内', /^\d{2}$/.test(promoUi.h) && /^\d{2}$/.test(promoUi.m) && /^\d{2}$/.test(promoUi.s), `${promoUi.h}:${promoUi.m}:${promoUi.s}`);
-  ok('弹窗大标题 50%', promoUi.title.includes('50'), promoUi.title);
-  ok('弹窗 CTA 有文案', promoUi.cta.includes('Mua'), promoUi.cta);
+  ok('弹窗大标题 70%', promoUi.title.includes('70'), promoUi.title);
+  ok('弹窗 CTA 有文案（Săn）', /Săn/i.test(promoUi.cta), promoUi.cta);
   await ev(`document.querySelector('[data-promo-modal] [data-modal-close]')?.click(); return 1;`);
 
   /* ---------------------------------------------------------------- 加购 */
@@ -185,12 +185,12 @@ const main = async () => {
   const pd = await ev(`
     const price = Number(String(document.querySelector('.lm-pd-price .now')?.textContent||'').replace(/[^\\d]/g,''));
     const list = Number(String(document.querySelector('.lm-pd-price .old')?.textContent||'').replace(/[^\\d]/g,''));
-    return { price, list, title: document.querySelector('.lm-pd-title')?.textContent||'', thumbs: document.querySelectorAll('[data-thumb]').length,
+    return { price, list, offBadge: !!document.querySelector('.lm-pd-price .off') || !!document.querySelector('.lm-pd-price .old'), title: document.querySelector('.lm-pd-title')?.textContent||'', thumbs: document.querySelectorAll('[data-thumb]').length,
              method: !!document.querySelector('.lm-pay-method'), tabs: document.querySelectorAll('[data-tab]').length,
              rev: !!document.querySelector('[data-panel="review"]'), related: document.querySelectorAll('[data-rel-list] .lm-card').length };
   `);
   ok('标题存在', pd.title.length > 3, pd.title.slice(0, 30));
-  ok('价格为 6 折', Math.abs(pd.price / pd.list - 0.6) < 0.02, `${pd.price}/${pd.list}`);
+  ok('售价按源站价（无划线价 / 无折扣角标）', pd.price > 0 && !pd.offBadge, `${pd.price}`);
   ok('图集缩略图 >= 1', pd.thumbs >= 1, String(pd.thumbs));
   ok('详情选项卡 3 个', pd.tabs === 3, String(pd.tabs));
   ok('评价区存在', pd.rev);

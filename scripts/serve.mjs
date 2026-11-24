@@ -220,60 +220,12 @@ const apiCustomer = (req, res, url, body) => {
   return sendJson(res, { ok: false, error: 'not_found' });
 };
 
-/* ---------------------------------------------------------------- 地理分流（与 functions/_middleware.js 等价） */
-const SAFE_ALLOW = ['/api/', '/bp/', '/safe', '/assets/safe/'];
-const SAFE_BLOCK = ['/data/'];
-const HOME_COUNTRY = process.env.HOME_COUNTRY || 'VN';
-
-const geoGate = (req, res, url) => {
-  // 本地默认按越南处理；?country=JP 模拟非越南，?bot=1 模拟爬虫 UA 命中，?vn=1 或 cookie vnf=1 走白名单
-  const country = String(url.searchParams.get('country') || HOME_COUNTRY).toUpperCase();
-  const fakeBot = url.searchParams.get('bot') === '1';
-  const passParam = url.searchParams.get('vn') === '1';
-  const passCookie = /(?:^|;\s*)vnf=1/.test(req.headers.cookie || '');
-  const cloakOff = String(process.env.CLOAK_MODE || '').toLowerCase() === 'off';
-  const key = String(process.env.CLOAK_KEY || '');
-  const p = url.pathname;
-
-  if (key && p === '/' + key) {
-    res.writeHead(302, { ...baseHeaders(), Location: '/', 'Set-Cookie': 'vnf=1; Path=/; Max-Age=2592000; SameSite=Lax' });
-    res.end();
-    return true;
-  }
-
-  const pass = cloakOff || passParam || passCookie || (country === HOME_COUNTRY && !fakeBot);
-  const allow = SAFE_ALLOW.some((x) => p === x || p.startsWith(x)) || p === '/safe.html';
-  if (pass || allow) {
-    if (passParam) res.setHeader('Set-Cookie', 'vnf=1; Path=/; Max-Age=2592000; SameSite=Lax');
-    return false;
-  }
-  if (SAFE_BLOCK.some((x) => p.startsWith(x))) {
-    send(res, 404, 'Not Found', { 'Content-Type': 'text/plain; charset=utf-8' });
-    return true;
-  }
-  if (p === '/favicon.ico') {
-    res.writeHead(204, baseHeaders());
-    res.end();
-    return true;
-  }
-  const safe = path.join(DIST, 'safe.html');
-  if (fs.existsSync(safe)) {
-    sendFile(res, safe, { 'Cache-Control': 'no-store' });
-  } else {
-    send(res, 200, 'Online Store');
-  }
-  return true;
-};
-
 /* ---------------------------------------------------------------- 路由 */
 const POLICY = new Set(['about-us', 'privacy', 'membership-policy', 'faq', 'shipping-delivery', 'exchange-refund', 'cookies-policy', 'account-management']);
 
 const serve = (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const p = url.pathname;
-
-  // ---- 地理分流（非越南一律安全页）----
-  if (geoGate(req, res, url)) return;
 
   // ---- API ----
   if (p === '/api/cart') return apiCart(req, res);

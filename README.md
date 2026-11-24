@@ -199,7 +199,7 @@ npm run build
 
 > 抓取仍然走 PowerShell/.NET（源站 CloudFront WAF 拦 OpenSSL 指纹，Node/curl 直接 403）。
 
-**当前清单（15 个，顺序即展示顺序）**
+**当前清单（18 个，顺序即展示顺序）**
 
 | # | 商品 | 源站标价 | 售价（3 折） |
 |---|---|---|---|
@@ -218,6 +218,9 @@ npm run build
 | 13 | Mì Xào Khô Indomie Goreng 80G（方便面） | 5.800 | 1.700 |
 | 14 | Mực Tẩm Gia Vị Bento 18G（鱿鱼小吃） | 28.500 | 8.600 |
 | 15 | Thùng 24 Hộp Sữa Meadow Fresh Canxi Ít Béo 200ml（奶） | 472.000 | 141.600 |
+| 16 | Sữa Thanh Trùng Meiji Không Lactose 946ml（无乳糖奶） | 90.900 | 27.300 |
+| 17 | Sữa Yến Mạch TH True Oat Lốc 4 × 180ml（燕麦奶） | 49.500 | 14.900 |
+| 18 | Sữa Chua Hy Lạp Farmers Union Không Béo 500G（希腊酸奶） | 154.900 | 46.500 |
 
 > 用到 `vi-bdh` 店铺抓的有 4 款（鸡蛋 / 蟹肉棒 / 薯条 / 牛奶）—— 那几款在 `vi_nsg` 主店里没有，`vi_bdh`（越南语 BDH 店）能拿到越南语名称与价格。
 

@@ -409,6 +409,15 @@
   const boot = () => {
     paintCount();
     LM.hydrateCardData(document);
+    /* 部署指纹：控制台里能看出线上跑的是哪次构建（排查"改了没生效"用） */
+    fetch('/version.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((v) => {
+        if (!v) return;
+        window.__LM_BUILD = v;
+        console.log(`%c[build] ${v.commit} · ${v.builtAt}`, 'color:#da291c;font-weight:700', v.features || {});
+      })
+      .catch(() => {});
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

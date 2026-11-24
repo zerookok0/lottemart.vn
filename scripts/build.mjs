@@ -12,6 +12,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const DIST = path.join(ROOT, 'dist');
@@ -78,6 +79,20 @@ const main = () => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) n += e.isDirectory() ? sum(path.join(dir, e.name)) : fs.statSync(path.join(dir, e.name)).size;
     return n;
   })(DIST);
+
+  /* ---- 部署指纹：/version.json（用来确认线上跑的是哪一次构建） ---- */
+  let commit = '';
+  try {
+    commit = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
+  } catch (e) {}
+  const stamp = {
+    commit,
+    builtAt: new Date().toISOString(),
+    files,
+    features: { safePage: false, cloak: false, discountRate: 0.3, freeShipping: true, deals: true },
+  };
+  fs.writeFileSync(path.join(DIST, 'version.json'), JSON.stringify(stamp, null, 2), 'utf8');
+  log(`version.json：commit=${commit || '?'} builtAt=${stamp.builtAt}`);
 
   log(`完成：dist/ ${files} 个文件，${(size / 1e6).toFixed(1)} MB，${((Date.now() - t0) / 1000).toFixed(1)}s`);
   if (files > 20000) {

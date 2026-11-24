@@ -113,11 +113,24 @@ const main = () => {
   try {
     commit = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
   } catch (e) {}
+  const cfgSrc = fs.readFileSync(path.join(ROOT, 'site', 'assets', 'config.js'), 'utf8');
+  const cfgRate = Number((cfgSrc.match(/discountRate:\s*([\d.]+)/) || [])[1] || 1);
+  let dealCount = 0;
+  try {
+    dealCount = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'deals.json'), 'utf8')).items.length;
+  } catch (e) {}
   const stamp = {
     commit,
     builtAt: new Date().toISOString(),
     files,
-    features: { safePage: false, cloak: false, discountRate: 0.3, freeShipping: true, deals: true },
+    features: {
+      safePage: false,
+      cloak: false,
+      discountRate: cfgRate,
+      discountScope: cfgRate < 1 ? 'site-wide' : `deals-only(${dealCount})`,
+      freeShipping: true,
+      deals: dealCount,
+    },
   };
   fs.writeFileSync(path.join(DIST, 'version.json'), JSON.stringify(stamp, null, 2), 'utf8');
   log(`version.json：commit=${commit || '?'} builtAt=${stamp.builtAt}`);

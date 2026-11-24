@@ -9,3 +9,7 @@
 # /vi-nsg/collection 由 functions/vi-nsg/collection/[[path]].js 200 直出 category.html
 
 /vi-nsg / 302
+
+# 安全页早已删除；老书签 / 旧缓存命中 /safe 时直接回首页，别再落到 404
+/safe / 302
+/safe.html / 302

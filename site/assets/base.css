@@ -1236,6 +1236,31 @@ p:last-child { margin-bottom: 0; }
   font-weight: 700;
 }
 .lm-pd-note { font-size: 12.5px; color: var(--muted); }
+
+/* 详情页服务承诺：免运费 / 当日达 */
+.lm-pd-perks { display: grid; gap: 8px; margin: 12px 0 4px; }
+.lm-pd-perk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid #d9f0e1;
+  border-radius: 10px;
+  background: #f4fcf7;
+}
+.lm-pd-perk .ic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #e2f5e9;
+  color: #16a34a;
+}
+.lm-pd-perk .ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lm-pd-perk b { display: block; font-size: 13.5px; color: #0f7b3d; letter-spacing: -0.01em; }
+.lm-pd-perk span { font-size: 12px; color: #4b6b58; }
 .lm-pd-desc { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
 .lm-pd-desc.clamped { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .lm-pd-desc ul { margin: 8px 0 0 18px; list-style: disc; }

@@ -36,7 +36,18 @@
   <span class="now">${LM.money(price)}</span>
   ${off > 0 && list > price ? `<span class="old">${LM.money(list)}</span><span class="off">-${off}%</span>` : ''}
 </div>
-<p class="lm-pd-note">Giá sản phẩm đã gồm VAT và chưa gồm phí vận chuyển (nếu có)</p>
+<p class="lm-pd-note">Giá sản phẩm đã gồm VAT. Miễn phí vận chuyển toàn quốc, không phụ phí.</p>
+
+<div class="lm-pd-perks">
+  <div class="lm-pd-perk">
+    <span class="ic">${LM.icon('truck')}</span>
+    <div><b>Miễn phí vận chuyển</b><span>Toàn quốc, không giới hạn đơn tối thiểu</span></div>
+  </div>
+  <div class="lm-pd-perk">
+    <span class="ic">${LM.icon('clock')}</span>
+    <div><b>Giao trong ngày</b><span>Nội thành TP.HCM &amp; Hà Nội</span></div>
+  </div>
+</div>
 
 <div>
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">

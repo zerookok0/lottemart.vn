@@ -217,6 +217,12 @@ const main = async () => {
   `);
   ok('标题存在', pd.title.length > 3, pd.title.slice(0, 30));
   ok('普通商品按源站标价（无划线价 / 无折扣角标）', pd.price > 0 && !pd.offBadge, `${pd.price}（划线价=${pd.list || '无'}）`);
+  const perks = await ev(`
+    const box = document.querySelector('.lm-pd-perks');
+    const txt = box ? box.textContent.replace(/\\s+/g,' ').trim() : '';
+    return { exists: !!box, items: box ? box.querySelectorAll('.lm-pd-perk').length : 0, txt };
+  `);
+  ok('详情页有「免运费 + 当日达」承诺', perks.exists && perks.items >= 2 && /Miễn phí vận chuyển/.test(perks.txt) && /Giao trong ngày/.test(perks.txt), perks.txt.slice(0, 90));
   ok('图集缩略图 >= 1', pd.thumbs >= 1, String(pd.thumbs));
   ok('详情选项卡 3 个', pd.tabs === 3, String(pd.tabs));
   ok('评价区存在', pd.rev);

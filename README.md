@@ -204,25 +204,25 @@ npm run build
 | # | 商品 | 源站标价 | 售价（3 折） |
 |---|---|---|---|
 | 1 | Cá Hồi Na Uy Phi Lê 300G（三文鱼） | 200.700 | 60.200 |
-| 2 | Trứng Gà Hồng V.Food 10 quả（鸡蛋，占位 *) | 39.900 | 12.000 |
+| 2 | Trứng Gà Tươi 365 Fresh 60G Hộp 30（鸡蛋） | 91.900 | 27.600 |
 | 3 | Thịt Ba Chỉ Heo Thái Mỏng 700G（五花肉片） | 139.000 | 41.700 |
 | 4 | Lạp Xưởng Tươi Đức Việt 500G（香肠） | 129.900 | 39.000 |
 | 5 | Bánh Xếp bibigo 365 Hải Sản 250G（饺子） | 86.900 | 26.100 |
 | 6 | Gà Popcorn CP Chiên Giòn 300G（鸡米花） | 55.900 | 16.800 |
-| 7 | Thanh Cua Surimi Mayumi 250G（蟹肉棒，en_bdh 抓取） | 76.900 | 23.100 |
+| 7 | Thanh Cua Surimi Mayumi Hộp 250G（蟹肉棒） | 76.900 | 23.100 |
 | 8 | Kim Chi Cải Thảo Cây bibigo 500G（泡菜） | 47.900 | 14.400 |
-| 9 | Khoai Tây Sợi Lớn Farm Best 1KG（薯条，en_bdh 抓取） | 81.500 | 24.500 |
+| 9 | Khoai Tây Sợi Thẳng Farm Best 1kg（薯条） | 81.500 | 24.500 |
 | 10 | Xúc Xích Đức Le Gourmet 500G（德国香肠） | 103.000 | 30.900 |
 | 11 | Gạo Lúa Mới Meizan 5kg（大米） | 184.900 | 55.500 |
 | 12 | Mì Koreno Jumbo Vị Nấm 1kg（方便面） | 93.500 | 28.100 |
 | 13 | Mì Xào Khô Indomie Goreng 80G（方便面） | 5.800 | 1.700 |
 | 14 | Mực Tẩm Gia Vị Bento 18G（鱿鱼小吃） | 28.500 | 8.600 |
-| 15 | Sữa Tươi Meadow Fresh Canxi 200ml×24（奶，en_bdh 抓取） | 472.000 | 141.600 |
+| 15 | Thùng 24 Hộp Sữa Meadow Fresh Canxi Ít Béo 200ml（奶） | 472.000 | 141.600 |
 
-\* 鸡蛋那条链接和「三文鱼」是同一条（都是 `-p1696`），先用库里真实鸡蛋商品占位，给到正确链接即可替换。
+> 用到 `vi-bdh` 店铺抓的有 4 款（鸡蛋 / 蟹肉棒 / 薯条 / 牛奶）—— 那几款在 `vi_nsg` 主店里没有，`vi_bdh`（越南语 BDH 店）能拿到越南语名称与价格。
 
-> 其中 3 个（蟹肉棒 / 薯条 / 牛奶）不在原 14,732 目录里，来自英文店铺 `en_bdh`：
-> 抓取脚本会按链接里的店铺段自动切 API（`/v1/p/mart/es/en_bdh/products/<id>`），拉下来的英文名在 `import-deals.mjs` 的 `NAME_OVERRIDE` 里改成越南站习惯的名字。
+> 店铺切换：抓取脚本按链接段决定 API（`/vi-bdh/` → `vi_bdh`、`/vi-nsg/` → `vi_nsg`、`/en-bdh/` → `en_bdh`），
+> 顺序是「链接里的店铺 → vi_bdh → vi_nsg → en_bdh」，某一档 404 就自动往下一档试；`vi_bdh` 能给出越南语名称，比英文店好。
 
 
 ## 价格口径（全站唯一）

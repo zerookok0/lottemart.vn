@@ -30,12 +30,8 @@ const DEALS_SUBTITLE = 'Chỉ còn 30% giá gốc · số lượng có hạn, nh
 /* 售价口径：与全站一致 = 标价 × RATE（取整到 100₫）。改 rate 请同步 config.js 的 discountRate */
 const RATE = 0.3;
 
-/* 少数从英文店铺（en_bdh）抓来的商品，名字按越南站习惯改一下（只影响展示名） */
-const NAME_OVERRIDE = {
-  3600: 'Thanh Cua Surimi Mayumi 250G',
-  70238: 'Khoai Tây Sợi Lớn Farm Best 1KG',
-  84895: 'Sữa Tươi Tiệt Trùng Meadow Fresh Canxi 200ml (Lốc 24)',
-};
+/* 少数商品若只有英文店铺（en_bdh）数据，名字按越南站习惯改一下（vi_bdh 能给越南语名时无需覆盖） */
+const NAME_OVERRIDE = {};
 const salePrice = (list) => {
   const n = Math.max(0, Math.round(Number(list) || 0));
   if (RATE >= 0.999) return n;

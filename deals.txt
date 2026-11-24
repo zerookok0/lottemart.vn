@@ -1,49 +1,51 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 首页「3折专区（Deal 3 Chấm）」商品清单
 # 一行一个源站链接，顺序 = 首页展示顺序；# 开头是注释
+# 店铺段会决定 API：/vi-bdh/ → vi_bdh，/vi-nsg/ → vi_nsg，/en-bdh/ → en_bdh
+# （三折专区这几款用 vi-bdh 抓，名字/价格都是越南站的）
 # ─────────────────────────────────────────────────────────────────────────────
 
 # 1) 三文鱼
-https://www.lottemart.vn/en-bdh/product/so-ca-hoi-nauy-phile-khong-da-2082590000002-p1696
+https://www.lottemart.vn/vi-bdh/product/so-ca-hoi-nauy-phile-khong-da-2082590000002-p1696
 
-# 2) 鸡蛋 ← 你给的链接和三文鱼是同一条（-p1696），先用库里真实鸡蛋商品占位，给我正确链接就换
-232613
+# 2) 鸡蛋（365 Fresh 60G 30 颗）
+https://www.lottemart.vn/vi-bdh/product/cl-trung-ga-tuoi-size-60g-hop-30-8938532406279-p233593
 
 # 3) 五花肉片
-https://www.lottemart.vn/en-bdh/product/thit-ba-chi-heo-thai-mong-700g-8936190861850-p231356
+https://www.lottemart.vn/vi-bdh/product/thit-ba-chi-heo-thai-mong-700g-8936190861850-p231356
 
 # 4) 香肠（Lạp xưởng）
-https://www.lottemart.vn/en-bdh/product/lap-xuong-tuoi-dv-500g-8935101608508-p236463
+https://www.lottemart.vn/vi-bdh/product/lap-xuong-tuoi-dv-500g-8935101608508-p236463
 
 # 5) 饺子
-https://www.lottemart.vn/en-bdh/product/bxep-hq-365-hai-san-250g-2-8934717402432-p237799
+https://www.lottemart.vn/vi-bdh/product/bxep-hq-365-hai-san-250g-2-8934717402432-p237799
 
 # 6) 鸡米花
-https://www.lottemart.vn/en-bdh/product/cp-crispy-popcorn-chicken-300g-8935319710130-p67116
+https://www.lottemart.vn/vi-bdh/product/cp-crispy-popcorn-chicken-300g-8935319710130-p67116
 
 # 7) 蟹肉棒
-https://www.lottemart.vn/en-bdh/product/thanh-cua-surimi-v-v-250g-8936019920089-p3600
+https://www.lottemart.vn/vi-bdh/product/thanh-cua-surimi-v-v-250g-8936019920089-p3600
 
 # 8) 泡菜
-https://www.lottemart.vn/en-bdh/product/kim-chi-cai-thao-cay-bibigo-500g-8935297104693-p232474
+https://www.lottemart.vn/vi-bdh/product/kim-chi-cai-thao-cay-bibigo-500g-8935297104693-p232474
 
 # 9) 薯条
-https://www.lottemart.vn/en-bdh/product/k-tay-soi-lon-farm-best-9-9-1kg-8906078780900-p70238
+https://www.lottemart.vn/vi-bdh/product/k-tay-soi-lon-farm-best-9-9-1kg-8906078780900-p70238
 
 # 10) 德国香肠
-https://www.lottemart.vn/en-bdh/product/xuc-xich-duc-le-gourmet-goi-500g-8935019598748-p7270
+https://www.lottemart.vn/vi-bdh/product/xuc-xich-duc-le-gourmet-goi-500g-8935019598748-p7270
 
 # 11) 大米
-https://www.lottemart.vn/en-bdh/product/meizan-lua-moi-rice-5kg-8938516870782-p242792
+https://www.lottemart.vn/vi-bdh/product/meizan-lua-moi-rice-5kg-8938516870782-p242792
 
 # 12) 方便面（Koreno）
-https://www.lottemart.vn/en-bdh/product/mi-vi-nam-koreno-jumbo-1kg-100g-x-10-goi-8936028641494-p9578
+https://www.lottemart.vn/vi-bdh/product/mi-vi-nam-koreno-jumbo-1kg-100g-x-10-goi-8936028641494-p9578
 
 # 13) 方便面（Indomie 炒面）
-https://www.lottemart.vn/en-bdh/product/mi-xao-kho-indomie-goreng-rasa-iga-penyet-vi-suon-goi-80g-0089686043686-p9171
+https://www.lottemart.vn/vi-bdh/product/mi-xao-kho-indomie-goreng-rasa-iga-penyet-vi-suon-goi-80g-0089686043686-p9171
 
 # 14) 鱿鱼小吃
-https://www.lottemart.vn/en-bdh/product/snack-hai-san-bento-thai-truyen-thong-22g-8935342400459-p231433
+https://www.lottemart.vn/vi-bdh/product/snack-hai-san-bento-thai-truyen-thong-22g-8935342400459-p231433
 
-# 15) 奶（M-Fresh canxi 200ml）
-https://www.lottemart.vn/en-bdh/product/sua-tt-m-fresh-canxi-200ml-3-19415522002575-p84895
+# 15) 奶（Meadow Fresh 加钙 200ml × 24）
+https://www.lottemart.vn/vi-bdh/product/sua-tt-m-fresh-canxi-200ml-3-19415522002575-p84895

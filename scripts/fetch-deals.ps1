@@ -98,20 +98,27 @@ foreach ($id in $ids) {
     $ok++
     continue
   }
-  $json = Get-Json "$ApiBase/$($storeOf[$id])/products/$id"
-  if (-not $json) { Write-Host "[fail] $id（$($storeOf[$id]) 店铺 拿不到）"; continue }
+  # 店铺优先级：链接里的店铺 → vi_bdh（越南语 BDH 店）→ vi_nsg（越南语主店）→ en_bdh（英文店）
+  $stores = @($storeOf[$id], 'vi_bdh', 'vi_nsg', 'en_bdh') | Select-Object -Unique
+  $json = $null
+  $usedStore = ''
+  foreach ($st in $stores) {
+    $json = Get-Json "$ApiBase/$st/products/$id"
+    if ($json) { $usedStore = $st; break }
+  }
+  if (-not $json) { Write-Host "[fail] $id（$($stores -join ' / ') 都拿不到）"; continue }
   [System.IO.File]::WriteAllText($out, $json, [System.Text.UTF8Encoding]::new($false))
 
   # 评价（拿不到不影响主流程）
   $revOut = Join-Path $Dir "reviews-$id.json"
   if ($Force -or -not (Test-Path $revOut)) {
-    $rev = Get-Json "$ApiBase/$($storeOf[$id])/products/$id/reviews?pageNumber=1&pageSize=50&sort[created_at]=desc"
+    $rev = Get-Json "$ApiBase/$usedStore/products/$id/reviews?pageNumber=1&pageSize=50&sort[created_at]=desc"
     if ($rev) { [System.IO.File]::WriteAllText($revOut, $rev, [System.Text.UTF8Encoding]::new($false)) }
   }
 
   $name = ''
   try { $name = ($json | ConvertFrom-Json).data.name } catch {}
-  Write-Host ("[ok]   {0}  {1:N0} B  {2}" -f $id, (Get-Item $out).Length, $name)
+  Write-Host ("[ok]   {0}  {1:N0} B  [{2}]  {3}" -f $id, (Get-Item $out).Length, $usedStore, $name)
   $ok++
   Start-Sleep -Milliseconds 250
 }

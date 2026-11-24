@@ -20,10 +20,40 @@
     { label: 'Đặt Hàng Nhanh', href: '/vi-nsg/collection/dat-hang-nhanh' },
   ];
 
+  /* 门店清单：name = 源站门店名（保存值），city = 所在省市（弹窗里显示，避免认不出胡志明）
+   * 胡志明市的 4 家门店在源站就是按商圈命名的（Nam Sài Gòn = 第7郡、Phú Thọ = 第11郡、Tân Bình、Gò Vấp） */
   const STORES = [
-    { region: 'Miền Nam', list: ['Nam Sài Gòn', 'Phú Thọ', 'Tân Bình', 'Gò Vấp', 'Đồng Nai', 'Bình Dương', 'Vũng Tàu', 'Cần Thơ', 'Tây Ninh'] },
-    { region: 'Miền Trung', list: ['Đà Nẵng', 'Phan Thiết', 'Nha Trang'] },
-    { region: 'Miền Bắc', list: ['Hà Nội Center', 'Vinh', 'Tây Hồ Hà Nội', 'Bắc Giang'] },
+    {
+      region: 'Miền Nam',
+      list: [
+        { name: 'Nam Sài Gòn', city: 'TP. Hồ Chí Minh' },
+        { name: 'Phú Thọ', city: 'TP. Hồ Chí Minh' },
+        { name: 'Tân Bình', city: 'TP. Hồ Chí Minh' },
+        { name: 'Gò Vấp', city: 'TP. Hồ Chí Minh' },
+        { name: 'Đồng Nai', city: 'Đồng Nai' },
+        { name: 'Bình Dương', city: 'Bình Dương' },
+        { name: 'Vũng Tàu', city: 'Bà Rịa - Vũng Tàu' },
+        { name: 'Cần Thơ', city: 'Cần Thơ' },
+        { name: 'Tây Ninh', city: 'Tây Ninh' },
+      ],
+    },
+    {
+      region: 'Miền Trung',
+      list: [
+        { name: 'Đà Nẵng', city: 'Đà Nẵng' },
+        { name: 'Phan Thiết', city: 'Bình Thuận' },
+        { name: 'Nha Trang', city: 'Khánh Hòa' },
+      ],
+    },
+    {
+      region: 'Miền Bắc',
+      list: [
+        { name: 'Hà Nội Center', city: 'Hà Nội' },
+        { name: 'Tây Hồ Hà Nội', city: 'Hà Nội' },
+        { name: 'Vinh', city: 'Nghệ An' },
+        { name: 'Bắc Giang', city: 'Bắc Giang' },
+      ],
+    },
   ];
 
   const FOOTER_LINKS = {
@@ -445,10 +475,13 @@
   <h4>${esc(g.region)}</h4>
   <div class="lm-store-chips">
     ${g.list
-      .map(
-        (s) =>
-          `<button type="button" data-store="${esc(s)}" class="${current === s ? 'on' : ''}">${esc(s)}</button>`
-      )
+      .map((s) => {
+        const name = typeof s === 'string' ? s : s.name;
+        const city = typeof s === 'string' ? '' : s.city;
+        return `<button type="button" data-store="${esc(name)}" class="${current === name ? 'on' : ''}">
+          <b>${esc(name)}</b>${city ? `<i>${esc(city)}</i>` : ''}
+        </button>`;
+      })
       .join('')}
   </div>
 </div>`

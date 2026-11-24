@@ -50,6 +50,7 @@ const SHOTS = [
   { name: 'register', url: '/register', w: 1440, h: 1100, ready: '.lm-auth-box' },
   { name: 'account', url: '/account', w: 1440, h: 1000, ready: '.lm-account-body' },
   { name: 'policy', url: '/vi-nsg/privacy', w: 1440, h: 1200, ready: '.lm-prose h2' },
+  { name: 'store-modal', url: '/', w: 1440, h: 900, ready: '.lm-card', closePromo: true, click: '[data-store-open]' },
   { name: 'mobile-home', url: '/', w: 390, h: 844, ready: '.lm-card', closePromo: true },
   { name: 'mobile-popup', url: '/', w: 390, h: 844, ready: '.lm-card', clearPromo: true, after: 1400 },
   { name: 'mobile-product', url: null, w: 390, h: 844, ready: '.lm-pd-title' },
@@ -212,6 +213,10 @@ const main = async () => {
     if (s.tab) {
       await ev(`document.querySelector('[data-tab="${s.tab}"]')?.click(); return 1;`);
       await sleep(500);
+    }
+    if (s.click) {
+      await ev(`document.querySelector('${s.click}')?.click(); return 1;`);
+      await sleep(700);
     }
     if (s.scrollTo) {
       await ev(`document.querySelector('${s.scrollTo}')?.scrollIntoView({block:'center'}); return 1;`);

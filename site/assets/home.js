@@ -46,7 +46,28 @@
 </section>`;
   };
 
-  const render = (home) => {
+  /* ---------------- 3折专区（人工精选，data/deals.json） ---------------- */
+  const dealsHtml = (deals) => {
+    if (!deals || !(deals.items || []).length) return '';
+    const title = deals.title || 'Săn Deal 3 Chấm — Giảm Đến 70%';
+    const sub = deals.subtitle || '';
+    return `<section class="lm-sec lm-deals" id="deals" data-sec="deals">
+  <div class="lm-deals-head">
+    <div>
+      <h2 class="lm-sec-title">${esc(title)}</h2>
+      ${sub ? `<p class="lm-deals-sub">${esc(sub)}</p>` : ''}
+    </div>
+    <span class="lm-deals-badge">-70%</span>
+  </div>
+  <div class="lm-rail-nav">
+    <button class="prev" type="button" data-rail-prev aria-label="Trước"></button>
+    <button class="next" type="button" data-rail-next aria-label="Sau"></button>
+    <div data-rail-body>${railHtml(deals.items, 'lm-rail-5')}</div>
+  </div>
+</section>`;
+  };
+
+  const render = (home, deals) => {
     const main = $('.lm-main');
     if (!main) return;
 
@@ -103,7 +124,10 @@
   }
 </div>`);
 
-    // 商品区块
+    // 商品区块（3折专区排最前）
+    const dealsBlock = dealsHtml(deals);
+    if (dealsBlock) html.push(`<div class="container">${dealsBlock}</div>`);
+
     for (const sec of home.sections || []) {
       html.push(`<div class="container">${sectionHtml(sec)}</div>`);
       if (sec.key === 'today_check' && (home.promoBanners || []).length) {
@@ -201,9 +225,9 @@
     window.__homeState = 'boot';
     if (main) main.innerHTML = `<div class="container" style="padding-top:16px"><div class="lm-skel" style="height:320px;border-radius:12px"></div></div>`;
     try {
-      const home = await LM.data.home();
+      const [home, deals] = await Promise.all([LM.data.home(), LM.data.deals()]);
       window.__homeState = 'data:' + (home.sections || []).length;
-      render(home);
+      render(home, deals);
       window.__homeState = 'rendered';
     } catch (e) {
       window.__homeState = 'error:' + (e && e.message);

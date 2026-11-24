@@ -201,6 +201,17 @@ const main = async () => {
   ok('首页有商品区块', (home.sections || []).length >= 4, String((home.sections || []).length));
   ok('首页有优惠券', (home.coupons || []).length > 0, String((home.coupons || []).length));
 
+  /* ---------------- 3折专区（首页人工精选） ---------------- */
+  const deals = JSON.parse((await head('/data/deals.json')).text);
+  ok('3折专区数据可取', Array.isArray(deals.items) && deals.items.length > 0, `items=${(deals.items || []).length}`);
+  ok('3折专区有标题与副标题', Boolean(deals.title) && Boolean(deals.subtitle), `${deals.title} / ${deals.subtitle}`);
+  ok(
+    '3折专区每张卡字段齐全',
+    (deals.items || []).every((x) => x.i && x.n && x.u && /^\/vi-nsg\/product\//.test(x.u) && x.p > 0)
+  );
+  const dealShard = deals.items && deals.items.length ? JSON.parse((await head(`/data/p/${Number(deals.items[0].i) % 100}.json`)).text) : {};
+  ok('3折专区商品有详情页数据', Boolean(dealShard[String(deals.items?.[0]?.i)]), `id=${deals.items?.[0]?.i}`);
+
   const prodShard = JSON.parse((await head(`/data/p/${Number(cat.items[0].id) % 100}.json`)).text);
   const prod = prodShard[String(cat.items[0].id)];
   ok('商品详情分片可取', Boolean(prod));

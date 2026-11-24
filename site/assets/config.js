@@ -31,7 +31,7 @@ window.LM_CONFIG = {
    * 当前 1 = 按源站标价卖（不打折）；改回 0.6 就是全站 6 折 */
   discountRate: 1,
   discountLabel: '',
-  freeShipThreshold: 500000,
+  freeShipThreshold: 0, // 0 = 全站免运费（运费恒为 0）
 
   /* ---- 进站弹窗（高 CTR 促销页）---- */
   promoModal: {

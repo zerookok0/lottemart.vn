@@ -142,6 +142,22 @@ const main = async () => {
   ok('快捷入口 6 个', (await ev(`return document.querySelectorAll('.lm-quick a').length;`)) === 6);
   ok('优惠券条存在', (await ev(`return document.querySelectorAll('.lm-coupon').length;`)) > 0);
   ok('页脚渲染', await ev(`return !!document.querySelector('.lm-foot-company');`));
+  const deals = await ev(`
+    const sec = document.querySelector('.lm-deals');
+    return {
+      exists: !!sec,
+      title: sec?.querySelector('.lm-sec-title')?.textContent.trim() || '',
+      sub: sec?.querySelector('.lm-deals-sub')?.textContent.trim() || '',
+      badge: sec?.querySelector('.lm-deals-badge')?.textContent.trim() || '',
+      cards: sec?.querySelectorAll('.lm-card').length || 0,
+      firstHref: sec?.querySelector('.lm-card-name')?.getAttribute('href') || '',
+      firstPrice: sec?.querySelector('.lm-card-price .now')?.textContent.trim() || '',
+    };
+  `);
+  ok('3折专区渲染', deals.exists && deals.cards >= 3, `cards=${deals.cards} title=${deals.title.slice(0, 28)}`);
+  ok('3折专区有副标题与 -70% 角标', deals.sub.length > 0 && deals.badge === '-70%', `${deals.badge} / ${deals.sub.slice(0, 24)}`);
+  ok('3折专区商品可点进详情页', /^\/vi-nsg\/product\//.test(deals.firstHref), deals.firstHref);
+  ok('3折专区商品有源站价', /\d/.test(deals.firstPrice), deals.firstPrice);
   const pv = await ev(`return (window.LM.pixel.log||[]).filter(x=>x.name==='PageView').length;`);
   ok('PageView 打了', pv >= 1, String(pv));
   await waitFor(`!!document.querySelector('[data-promo-modal].open')`, 20000);
@@ -253,10 +269,15 @@ const main = async () => {
   const cartInfo = await ev(`
     const rows = document.querySelectorAll('.lm-cart-row').length;
     const total = document.querySelector('.lm-summary .total b')?.textContent||'';
-    return { rows, total, summary: !!document.querySelector('.lm-summary') };
+    const lines = [...document.querySelectorAll('.lm-summary .line')].map(x=>x.textContent.replace(/\\s+/g,' ').trim());
+    const sum = Number(total.replace(/[^\\d]/g,'')) || 0;
+    const items = [...document.querySelectorAll('.lm-cart-row .lm-cart-sum')].map(x=>Number(x.textContent.replace(/[^\\d]/g,''))||0);
+    return { rows, total, sum, itemsSum: items.reduce((a,b)=>a+b,0), lines, summary: !!document.querySelector('.lm-summary') };
   `);
   ok('购物车行渲染', cartInfo.rows > 0, String(cartInfo.rows));
   ok('合计显示', Boolean(cartInfo.total), cartInfo.total);
+  ok('运费行显示「Miễn phí」', cartInfo.lines.some((l) => /Phí vận chuyển/i.test(l) && /Miễn phí/i.test(l)), cartInfo.lines.join(' | '));
+  ok('全站免运费（合计 = 商品小计）', cartInfo.sum > 0 && cartInfo.sum === cartInfo.itemsSum, `${cartInfo.sum}/${cartInfo.itemsSum}`);
 
   /* ---------------------------------------------------------------- 结账页 */
   console.log('\n7. 结账页');

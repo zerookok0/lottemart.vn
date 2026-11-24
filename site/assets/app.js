@@ -269,6 +269,7 @@
   LM.data = {
     menu: () => getJson('/data/menu.json'),
     home: () => getJson('/data/home.json'),
+    deals: () => getJson('/data/deals.json').catch(() => ({ items: [], ids: [] })),
     meta: () => getJson('/data/meta.json'),
     search: () => getJson('/data/search.json'),
     cat: (id) => getJson(`/data/cat/${id}.json`).catch(() => ({ id, total: 0, items: [] })),
@@ -296,7 +297,8 @@
 
   /* ---------------------------------------------------------------- 商品卡 */
   LM.card = (p) => {
-    // 数据里的卡片字段是短名（p = 售价, l = 原价），也兼容长名
+    // 数据里的卡片字段是短名（i = id, p = 售价, l = 原价），也兼容长名
+    const pid = p.id != null ? p.id : p.i != null ? p.i : '';
     const rawList = Number(p.list != null ? p.list : p.l) || 0;
     const rawPrice = Number(p.price != null ? p.price : p.p) || 0;
     const list = rawList || Math.round(rawPrice / 0.6 / 100) * 100;
@@ -311,15 +313,15 @@
     const badge = (p.labels && p.labels[0]) || null;
     const badgeName = badge ? badge.name : p.b || '';
     const badgeImg = badge ? badge.img : p.bi || '';
-    const fav = LM.fav.has(p.id) ? ' on' : '';
+    const fav = LM.fav.has(pid) ? ' on' : '';
 
-    return `<article class="lm-card" data-id="${LM.esc(p.id)}" data-name="${LM.esc(name)}" data-url="${LM.esc(url)}" data-img="${LM.esc(img)}" data-price="${price}" data-list="${list}">
+    return `<article class="lm-card" data-id="${LM.esc(pid)}" data-name="${LM.esc(name)}" data-url="${LM.esc(url)}" data-img="${LM.esc(img)}" data-price="${price}" data-list="${list}">
   <a class="lm-card-media" href="${LM.esc(url)}" aria-label="${LM.esc(name)}">
     <img src="${LM.esc(img)}" alt="${LM.esc(name)}" loading="lazy" decoding="async">
   </a>
   ${badgeImg ? `<img class="lm-card-label" src="${LM.esc(badgeImg)}" alt="" loading="lazy">` : badgeName ? `<span class="lm-card-label-text">${LM.esc(badgeName)}</span>` : ''}
-  <button class="lm-card-fav${fav}" type="button" data-fav="${LM.esc(p.id)}" aria-label="Yêu thích">${LM.icon('heart')}</button>
-  <button class="lm-card-cart" type="button" data-add="${LM.esc(p.id)}" aria-label="Thêm vào giỏ hàng">${LM.icon('cart')}</button>
+  <button class="lm-card-fav${fav}" type="button" data-fav="${LM.esc(pid)}" aria-label="Yêu thích">${LM.icon('heart')}</button>
+  <button class="lm-card-cart" type="button" data-add="${LM.esc(pid)}" aria-label="Thêm vào giỏ hàng">${LM.icon('cart')}</button>
   <div class="lm-card-body">
     <a class="lm-card-name" href="${LM.esc(url)}">${LM.esc(name)}</a>
     <div class="lm-card-meta">

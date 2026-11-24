@@ -3,7 +3,10 @@
   const LM = window.LM || {};
   const esc = (s) => LM.esc(s);
   const $ = (s, r) => (r || document).querySelector(s);
-  const FREE = Number((window.LM_CONFIG || {}).freeShipThreshold || 500000);
+  /* 运费：默认 0 = 全站免运费；要恢复「满额免运费」把 config.js 的 freeShipThreshold 改成门槛 + 这里给 SHIP_FEE */
+  const FREE = Number((window.LM_CONFIG || {}).freeShipThreshold || 0);
+  const SHIP_FEE = Number((window.LM_CONFIG || {}).shippingFee || 0);
+  const shipOf = (total) => (FREE <= 0 || total >= FREE ? 0 : SHIP_FEE);
 
   const render = () => {
     const items = LM.cart.all();
@@ -53,7 +56,7 @@
     const total = LM.cart.total();
     const listTotal = LM.cart.listTotal();
     const saved = Math.max(0, listTotal - total);
-    const ship = total >= FREE ? 0 : 25000;
+    const ship = shipOf(total);
 
     summary.innerHTML = `
 <div class="lm-summary">
@@ -63,7 +66,7 @@
   <div class="line"><span>Phí vận chuyển</span><b>${ship ? LM.money(ship) : 'Miễn phí'}</b></div>
   <div class="total"><span>Tổng cộng</span><b>${LM.money(total + ship)}</b></div>
   <a class="btn btn-block btn-lg" href="/checkout">Tiến hành thanh toán</a>
-  <p class="note">Miễn phí giao hàng cho đơn từ ${LM.money(FREE)}</p>
+  <p class="note">Miễn phí giao hàng toàn quốc</p>
 </div>`;
 
     wire();

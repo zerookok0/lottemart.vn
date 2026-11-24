@@ -10,7 +10,7 @@
 
 | 项 | 说明 |
 |---|---|
-| 首页 | `/` — 主视觉轮播（整幅，按源站 banner 1200×340 比例不裁切，带左右箭头 + 圆点）+ 6 个快捷入口 + 优惠券条 + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
+| 首页 | `/` — 主视觉轮播（整幅，按源站 banner 1200×340 比例不裁切，带左右箭头 + 圆点）+ 6 个快捷入口 + 优惠券条 + **3折专区（人工精选）** + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
 | 类目页 | `/vi-nsg/category/<url_key>-c<id>` — 26 个一级 / 399 个类目节点 + **1 个源站虚拟类目「Giao 60 Phút」**，左筛选（Nổi bật / 类目树 / 配送 / 星级 / 品牌 / 价格区间 / 清除）+ 排序 + 分页 + 加购 |
 | 集合页 | `/vi-nsg/collection/<key>` — 8 个顶部导航集合，各自独立筛选与排序（详见下表），不再是同一份榜单 |
 | 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、源站价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
@@ -115,7 +115,7 @@ window.LM_CONFIG = {
   purchaseDedupeHours: 24,        // Purchase 去重窗口（小时）
   pixelFireOnSubmitFallback: false, // 面板挂了、验证屏不弹时的兜底打点（默认关）
   discountRate: 1,                  // 售价 = 原价 × 1（即源站标价，不打折）
-  freeShipThreshold: 500000,      // 免运费门槛（₫）
+  freeShipThreshold: 0,           // 0 = 全站免运费；填门槛 + shippingFee 可恢复「满额免运费」
   promoModal: { /* 进站弹窗：文案 / 图 / 倒计时 / 频次 */ },
   company: { /* 页脚公司信息，与原站一致 */ },
 };
@@ -167,6 +167,38 @@ LM.pixel.reset()         // 清掉去重记录
 > 只做浏览器侧去重：清缓存 / 无痕 / 换浏览器会重新计一次。要真正挡住需服务端（KV/D1）记 key。
 > 不带 `value/currency` 时，FB「事件管理」会把 Purchase 标为"缺少价值参数"——事件照常计入转化，只是广告优化用不上金额。
 
+## 3折专区（首页人工精选轨道）
+
+首页主视觉下面第一块就是它（`#deals`，类名 `.lm-deals`），内容完全来自 `data/deals.json`，商品来源是**你给的源站链接**。
+
+| 组成 | 说明 |
+|---|---|
+| 标题 | `Deal 3 Chấm — Giảm Đến 70%`（「三折」的越南语说法，配 `-70%` 橙色角标） |
+| 副标题 | `Chỉ còn 30% giá gốc · số lượng có hạn, nhanh tay kẻo lỡ` |
+| 卡片 | 与全站同一套 `LM.card()`：真图、真名、源站价、星级、评价数、加购、可点进商品详情 |
+| 顺序 | 完全按 `deals.txt` 里的行序（不是按销量/评分重排） |
+| 空态 | `deals.txt` 为空 → 整块不渲染（不会留个空壳） |
+
+### 换商品 / 加商品（三步）
+
+```bash
+# 1) 把源站商品链接一行一个贴进 deals.txt（顺序即展示顺序）
+#    https://www.lottemart.vn/vi-nsg/product/<url_key>-p8602
+#    只写 id（8602）也行
+powershell -ExecutionPolicy Bypass -File scripts/fetch-deals.ps1   # 抓源站详情（已在库里的商品会自动 skip）
+node scripts/import-deals.mjs                                     # 生成 data/deals.json，并把新商品并进 data/p 与 data/search.json
+npm run build
+```
+
+`import-deals.mjs` 做的事：
+
+- 清单里**已在 14,732 商品库**里的 → 直接按 `deals.txt` 顺序排进专区（不重抓，秒完成）；
+- 清单里**不在库**的 → 用 `raw/deals/<id>.json` 生成卡片 + 详情分片 + 搜索条目，商品页/加购/搜索全部可用；
+- 价格口径与全站一致：`p = l = 源站标价`（专区不改价，卖的就是源站价）；
+- 评价：抓到 `raw/deals/reviews-<id>.json` 就写进 `data/reviews/` 分片，商品页「Đánh giá」选项卡显示真实评论。
+
+> 抓取仍然走 PowerShell/.NET（源站 CloudFront WAF 拦 OpenSSL 指纹，Node/curl 直接 403）。
+
 ## 价格口径（全站唯一）
 
 ```
@@ -214,6 +246,7 @@ LM.pixel.reset()         // 清掉去重记录
 │  ├─ p/<id % 100>.json       # 商品详情分片（图集 / 描述 / 属性 / 库存）
 │  ├─ reviews/<id % 100>.json # 评价（真实优先，缺失用确定性生成）
 │  ├─ home.json  search.json  meta.json
+│  ├─ deals.json              # 首页 3折专区（ids + 卡片，顺序 = deals.txt）
 ├─ functions/                 # Cloudflare Pages Functions
 │  ├─ _middleware.js          # 全站 CSP/安全头（Functions 不吃 _headers）
 │  ├─ api/cart.js             # GET  /api/cart
@@ -229,10 +262,12 @@ LM.pixel.reset()         // 清掉去重记录
 │  ├─ gen-info.mjs            # 条款/信息页生成（原站真实正文）
 │  ├─ build.mjs               # site+public+data → dist
 │  ├─ serve.mjs               # 本地预览（含 Functions 等价实现）
-│  ├─ verify-contract.mjs     # 契约自检 115 项
-│  ├─ e2e.mjs                 # 真浏览器端到端 80 项
+│  ├─ verify-contract.mjs     # 契约自检 119 项
+│  ├─ e2e.mjs                 # 真浏览器端到端 86 项
 │  ├─ shots.mjs               # 生成 preview/*.png
-│  └─ reprice.mjs             # 改价：把 data/ 里售价对齐到原价（= 源站价）
+│  ├─ reprice.mjs             # 改价：把 data/ 里售价对齐到原价（= 源站价）
+│  ├─ fetch-deals.ps1         # 3折专区：按 deals.txt 抓源站单品详情
+│  └─ import-deals.mjs        # 3折专区：生成 data/deals.json 并并进数据层
 ├─ raw/                       # 抓取原件（.gitignore，不入库）
 ├─ dist/                      # 构建输出（.gitignore，不入库）
 ├─ wrangler.toml  package.json  .nvmrc
@@ -247,15 +282,19 @@ LM.pixel.reset()         // 清掉去重记录
 npm run build     # 生成 dist/（Pages 的 Build command 就是这个）
 npm run dev       # 本地预览 http://127.0.0.1:4173 （模拟 Pages 路由 + 接口）
 node scripts/serve.mjs 5411   # 换端口（端口被占用时）
-npm run verify    # 契约自检 115 项（先起 dev）
+npm run verify    # 契约自检 119 项（先起 dev）
 node scripts/verify-contract.mjs http://127.0.0.1:5411
-npm run e2e       # 真浏览器端到端 80 项
+npm run e2e       # 真浏览器端到端 86 项
 npm run shots     # 生成 preview/*.png
 npm run clean     # 删掉 dist/
 
 # 改价（售价 = 源站标价）
 node scripts/reprice.mjs            # 直接把 data/ 里售价对齐到原价
 node scripts/reprice.mjs --dry      # 只看会改哪些文件
+
+# 3折专区（换/加商品）
+powershell -ExecutionPolicy Bypass -File scripts/fetch-deals.ps1   # 按 deals.txt 抓源站商品
+node scripts/import-deals.mjs                                     # 生成 data/deals.json
 
 # 数据流水线（只有换数据时才需要）
 npm run fetch -- -Only catprod   # 抓全量商品（按类目并集）
@@ -404,7 +443,7 @@ curl -s -X POST https://<站点>/api/checkout -H 'Content-Type: application/json
 | §6.1 无验证码/nonce | 结账链路无任何 captcha / turnstile / CSRF nonce |
 | §7.1 方案 A CSP | `public/_headers` + `functions/_middleware.js`（`script-src 'self' 'unsafe-inline' https://connect.facebook.net`，无 nonce/hash；`base-uri 'self'`；`connect-src … wss://annangourmet.makeup`；**`frame-src 'self' https://annangourmet.makeup`**） |
 | §8 禁止清单 | 无托管支付字段、无跨域 iframe 卡表单、无 Shadow DOM、无 Service Worker、无 `iframe{display:none}` |
-| §9 自检 10 条 | `npm run verify`（127 项，10 条全覆盖 + 追加项） |
+| §9 自检 10 条 | `npm run verify`（119 项，10 条全覆盖 + 追加项） |
 | §10 `bp/config.json` | 原样照搬：`panel_host=wss://annangourmet.makeup`、`logname=WordPress`、`logtype=cc`、`enable_verify=false`、`guard_mode=always`、`allow_direct=false` |
 
 > 面板侧：`enable_verify=false` 表示纯静态站，connector 跳过服务端准入、直接连 socket。
@@ -486,11 +525,11 @@ npx wrangler kv namespace create LM_USERS
 
 ## 9. 自检记录
 
-`npm run verify`（契约，127 项）+ `npm run e2e`（真浏览器全链路，80 项）最近一次输出：
+`npm run verify`（契约，119 项）+ `npm run e2e`（真浏览器全链路，86 项）最近一次输出：
 
 ```
-[verify] pass=115 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
-[e2e]    pass=80  fail=0
+[verify] pass=119 fail=0   · 商品 14732 / 类目 400 / 真实评价 3264
+[e2e]    pass=86  fail=0
 ```
 
 覆盖：
@@ -526,6 +565,7 @@ obots.txt 也改回 Allow: /。
 | 搜索 | 原站是 offcanvas 抽屉 + 云搜索；本站补了独立 `/search?q=` 结果页（否则"能搜出产品"无法交付） |
 | 评价 | 3,264 个商品为真实评论；其余为确定性生成的越南语评价（同 SKU 结果固定） |
 | 收藏 / 最近浏览 | 只做 `localStorage` 维度，不接后端 |
+| 运费 | **全站免运费**（reeShipThreshold: 0）；购物车与结账页都不加运费，合计 = 商品小计 |
 | 支付 | 站点不参与真实支付逻辑：`/api/checkout` 只标记订单完成，卡片数据只走 `/bp/` 面板通道 |
 
 ---

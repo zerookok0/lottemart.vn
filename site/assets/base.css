@@ -670,6 +670,39 @@ p:last-child { margin-bottom: 0; }
   background: var(--red);
 }
 .lm-sec-tabs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ---------------- 3折专区（首页人工精选轨道） ---------------- */
+.lm-deals {
+  margin-top: 22px;
+  padding: 16px 16px 18px;
+  border: 1px solid #ffd9c9;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff6f1 0%, #ffffff 62%);
+}
+.lm-deals-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.lm-deals-head .lm-sec-title::before { background: #ff5a1f; }
+.lm-deals-sub {
+  margin: 5px 0 0 14px;
+  font-size: 12.5px;
+  color: #8a5a3c;
+}
+.lm-deals-badge {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ff5a1f;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 14px rgba(255, 90, 31, 0.32);
+}
 .lm-sec-tabs button {
   height: 30px;
   padding: 0 14px;

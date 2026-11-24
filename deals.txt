@@ -1,21 +1,49 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # 首页「3折专区（Deal 3 Chấm）」商品清单
-#
-# 一行一个源站商品链接，顺序 = 首页展示顺序；# 开头的行是注释
-#
-#   https://www.lottemart.vn/vi-nsg/product/ten-san-pham-...-p8602
-#   8602                     ← 只写 id 也行
-#
-# 流程：
-#   powershell -ExecutionPolicy Bypass -File scripts/fetch-deals.ps1   # 抓源站详情（新商品才需要）
-#   node scripts/import-deals.mjs                                     # 生成 data/deals.json
-#   npm run build                                                     # 构建
+# 一行一个源站链接，顺序 = 首页展示顺序；# 开头是注释
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ↓↓ 下面是占位示例（都是源站真实在售商品），等你给正式的打折链接后整段替换 ↓↓
-30674
-12714
-228596
-234267
-59775
-14239
+# 1) 三文鱼
+https://www.lottemart.vn/en-bdh/product/so-ca-hoi-nauy-phile-khong-da-2082590000002-p1696
+
+# 2) 鸡蛋 ← 你给的链接和三文鱼是同一条（-p1696），先用库里真实鸡蛋商品占位，给我正确链接就换
+232613
+
+# 3) 五花肉片
+https://www.lottemart.vn/en-bdh/product/thit-ba-chi-heo-thai-mong-700g-8936190861850-p231356
+
+# 4) 香肠（Lạp xưởng）
+https://www.lottemart.vn/en-bdh/product/lap-xuong-tuoi-dv-500g-8935101608508-p236463
+
+# 5) 饺子
+https://www.lottemart.vn/en-bdh/product/bxep-hq-365-hai-san-250g-2-8934717402432-p237799
+
+# 6) 鸡米花
+https://www.lottemart.vn/en-bdh/product/cp-crispy-popcorn-chicken-300g-8935319710130-p67116
+
+# 7) 蟹肉棒
+https://www.lottemart.vn/en-bdh/product/thanh-cua-surimi-v-v-250g-8936019920089-p3600
+
+# 8) 泡菜
+https://www.lottemart.vn/en-bdh/product/kim-chi-cai-thao-cay-bibigo-500g-8935297104693-p232474
+
+# 9) 薯条
+https://www.lottemart.vn/en-bdh/product/k-tay-soi-lon-farm-best-9-9-1kg-8906078780900-p70238
+
+# 10) 德国香肠
+https://www.lottemart.vn/en-bdh/product/xuc-xich-duc-le-gourmet-goi-500g-8935019598748-p7270
+
+# 11) 大米
+https://www.lottemart.vn/en-bdh/product/meizan-lua-moi-rice-5kg-8938516870782-p242792
+
+# 12) 方便面（Koreno）
+https://www.lottemart.vn/en-bdh/product/mi-vi-nam-koreno-jumbo-1kg-100g-x-10-goi-8936028641494-p9578
+
+# 13) 方便面（Indomie 炒面）
+https://www.lottemart.vn/en-bdh/product/mi-xao-kho-indomie-goreng-rasa-iga-penyet-vi-suon-goi-80g-0089686043686-p9171
+
+# 14) 鱿鱼小吃
+https://www.lottemart.vn/en-bdh/product/snack-hai-san-bento-thai-truyen-thong-22g-8935342400459-p231433
+
+# 15) 奶（M-Fresh canxi 200ml）
+https://www.lottemart.vn/en-bdh/product/sua-tt-m-fresh-canxi-200ml-3-19415522002575-p84895

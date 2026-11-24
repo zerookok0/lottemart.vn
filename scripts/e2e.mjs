@@ -206,7 +206,7 @@ const main = async () => {
              rev: !!document.querySelector('[data-panel="review"]'), related: document.querySelectorAll('[data-rel-list] .lm-card').length };
   `);
   ok('标题存在', pd.title.length > 3, pd.title.slice(0, 30));
-  ok('售价按源站价（无划线价 / 无折扣角标）', pd.price > 0 && !pd.offBadge, `${pd.price}`);
+  ok('售价 = 标价 3 折（有划线价与折扣角标）', pd.price > 0 && pd.offBadge && Math.abs(pd.price / pd.list - 0.3) < 0.03, `${pd.price}/${pd.list}`);
   ok('图集缩略图 >= 1', pd.thumbs >= 1, String(pd.thumbs));
   ok('详情选项卡 3 个', pd.tabs === 3, String(pd.tabs));
   ok('评价区存在', pd.rev);

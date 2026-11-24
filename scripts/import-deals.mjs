@@ -27,6 +27,21 @@ const SHARDS = 100;
 const DEALS_TITLE = 'Deal 3 Chấm — Giảm Đến 70%';
 const DEALS_SUBTITLE = 'Chỉ còn 30% giá gốc · số lượng có hạn, nhanh tay kẻo lỡ';
 
+/* 售价口径：与全站一致 = 标价 × RATE（取整到 100₫）。改 rate 请同步 config.js 的 discountRate */
+const RATE = 0.3;
+
+/* 少数从英文店铺（en_bdh）抓来的商品，名字按越南站习惯改一下（只影响展示名） */
+const NAME_OVERRIDE = {
+  3600: 'Thanh Cua Surimi Mayumi 250G',
+  70238: 'Khoai Tây Sợi Lớn Farm Best 1KG',
+  84895: 'Sữa Tươi Tiệt Trùng Meadow Fresh Canxi 200ml (Lốc 24)',
+};
+const salePrice = (list) => {
+  const n = Math.max(0, Math.round(Number(list) || 0));
+  if (RATE >= 0.999) return n;
+  return Math.max(100, Math.round((n * RATE) / 100) * 100);
+};
+
 const readJson = (f, fb) => {
   try {
     return JSON.parse(fs.readFileSync(f, 'utf8'));
@@ -146,11 +161,11 @@ for (const id of ids) {
 
     card = {
       i: String(d.id || id),
-      n: String(d.name || '').trim(),
+      n: NAME_OVERRIDE[String(d.id || id)] || String(d.name || '').trim(),
       u: url,
       im: slimImg(img),
-      p: list,
-      l: list, // 售价 = 源站价（与全站口径一致）
+      p: salePrice(list),
+      l: list, // 标价保留源站原值，售价按全站口径打折
       r: Number(d.ext_overall_rating) || 0,
       rv: Number(d.ext_overall_review) || 0,
       s: 12 + (hashStr(String(d.sku || id)) % 480),
@@ -171,7 +186,7 @@ for (const id of ids) {
       name: card.n,
       url,
       list,
-      price: list,
+      price: salePrice(list),
       img: slimImg(img),
       gallery: (gallery.length ? gallery : [img]).slice(0, 4).map(slimImg),
       rating: card.r,

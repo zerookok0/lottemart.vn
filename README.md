@@ -2,7 +2,7 @@
 
 `https://www.lottemart.vn/` 的 1:1 storefront 复刻 + 全套结账链路。纯静态站（Cloudflare Pages）+ Pages Functions，
 **零运行时依赖、不需要 npm install**。商品、价格、图片、类目、评价、条款文案全部来自原站真实数据；
-**售价 = 原站标价（不打折）**。
+**售价 = 原站标价的 3 折（-70%，划线价 + 折扣角标自动显示）**。
 
 ---
 
@@ -13,7 +13,7 @@
 | 首页 | `/` — 主视觉轮播（整幅，按源站 banner 1200×340 比例不裁切，带左右箭头 + 圆点）+ 6 个快捷入口 + 优惠券条 + **3折专区（人工精选）** + 9 个商品轨道（选项卡排序）+ 促销横幅 + 品牌带 + 四列页脚 + 进站弹窗 |
 | 类目页 | `/vi-nsg/category/<url_key>-c<id>` — 26 个一级 / 399 个类目节点 + **1 个源站虚拟类目「Giao 60 Phút」**，左筛选（Nổi bật / 类目树 / 配送 / 星级 / 品牌 / 价格区间 / 清除）+ 排序 + 分页 + 加购 |
 | 集合页 | `/vi-nsg/collection/<key>` — 8 个顶部导航集合，各自独立筛选与排序（详见下表），不再是同一份榜单 |
-| 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、源站价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
+| 商品页 | `/vi-nsg/product/<url_key>-p<id>` — 图集（4 图 + 放大/分享）、标签、`Lượt xem`、3 折价 + 划线价、VAT 说明、短描述展开、库存条、数量步进器、收藏/收藏夹/加购、`Chi Tiết Sản Phẩm` 三选项卡（Mô tả / Đặc điểm / Đánh giá）、相关推荐横滑 |
 | 搜索 | `/search?q=` — 全量 14,732 商品本地索引（去声调 + 多词 AND + SKU），结果用同一套筛选/排序 |
 | 购物车 | `/cart` — 改数量、删除、小计、优惠额、运费、合计、去结账 |
 | 结账页 | `/checkout` — 契约 §3/§4 的 head 三段顺序 + DOM，接 `/bp/` connector（20261121 版：守卫模式 + 面板托管验证屏）；账单字段与源站口径一致（见下） |
@@ -57,7 +57,7 @@
 | 动作 | 红色 `Săn ưu đãi ngay →`（跳 `ctaHref`）+ 灰色 `Để sau` + 右上白底红字 `×` |
 | 频次 | 关掉后 `ttlHours: 6` 内不再弹；`pages` 控制出现在哪些页面 |
 
-> 弹窗是纯前端文案，与商品实际标价无关（全站售价现在就是源站价）。改口径只动 `promoModal` 的 `badge / headline / heroTitle / ribbon / script / cta` 六个字段。
+> 弹窗与全站价格口径一致（全站 3 折 = 70% OFF）。改口径只动 `promoModal` 的 `badge / headline / heroTitle / ribbon / script / cta` 六个字段。
 
 响应式：桌面居中卡片 `min(94vw, 520px)`；≤480px 变成底部抽屉（`border-radius: 18px 18px 0 0`，`max-height: 92dvh`），字号用 `clamp()` 连续缩放，CTA 与倒计时始终在首屏内。
 
@@ -175,7 +175,7 @@ LM.pixel.reset()         // 清掉去重记录
 |---|---|
 | 标题 | `Deal 3 Chấm — Giảm Đến 70%`（「三折」的越南语说法，配 `-70%` 橙色角标） |
 | 副标题 | `Chỉ còn 30% giá gốc · số lượng có hạn, nhanh tay kẻo lỡ` |
-| 卡片 | 与全站同一套 `LM.card()`：真图、真名、源站价、星级、评价数、加购、可点进商品详情 |
+| 卡片 | 与全站同一套 `LM.card()`：真图、真名、3 折价 + 划线标价、星级、评价数、加购、可点进商品详情 |
 | 顺序 | 完全按 `deals.txt` 里的行序（不是按销量/评分重排） |
 | 空态 | `deals.txt` 为空 → 整块不渲染（不会留个空壳） |
 
@@ -194,16 +194,42 @@ npm run build
 
 - 清单里**已在 14,732 商品库**里的 → 直接按 `deals.txt` 顺序排进专区（不重抓，秒完成）；
 - 清单里**不在库**的 → 用 `raw/deals/<id>.json` 生成卡片 + 详情分片 + 搜索条目，商品页/加购/搜索全部可用；
-- 价格口径与全站一致：`p = l = 源站标价`（专区不改价，卖的就是源站价）；
+- 价格口径与全站一致：`p = 标价 × 0.3`（专区不单独定价，跟着 `reprice.mjs` 的 rate 走）；
 - 评价：抓到 `raw/deals/reviews-<id>.json` 就写进 `data/reviews/` 分片，商品页「Đánh giá」选项卡显示真实评论。
 
 > 抓取仍然走 PowerShell/.NET（源站 CloudFront WAF 拦 OpenSSL 指纹，Node/curl 直接 403）。
+
+**当前清单（15 个，顺序即展示顺序）**
+
+| # | 商品 | 源站标价 | 售价（3 折） |
+|---|---|---|---|
+| 1 | Cá Hồi Na Uy Phi Lê 300G（三文鱼） | 200.700 | 60.200 |
+| 2 | Trứng Gà Hồng V.Food 10 quả（鸡蛋，占位 *) | 39.900 | 12.000 |
+| 3 | Thịt Ba Chỉ Heo Thái Mỏng 700G（五花肉片） | 139.000 | 41.700 |
+| 4 | Lạp Xưởng Tươi Đức Việt 500G（香肠） | 129.900 | 39.000 |
+| 5 | Bánh Xếp bibigo 365 Hải Sản 250G（饺子） | 86.900 | 26.100 |
+| 6 | Gà Popcorn CP Chiên Giòn 300G（鸡米花） | 55.900 | 16.800 |
+| 7 | Thanh Cua Surimi Mayumi 250G（蟹肉棒，en_bdh 抓取） | 76.900 | 23.100 |
+| 8 | Kim Chi Cải Thảo Cây bibigo 500G（泡菜） | 47.900 | 14.400 |
+| 9 | Khoai Tây Sợi Lớn Farm Best 1KG（薯条，en_bdh 抓取） | 81.500 | 24.500 |
+| 10 | Xúc Xích Đức Le Gourmet 500G（德国香肠） | 103.000 | 30.900 |
+| 11 | Gạo Lúa Mới Meizan 5kg（大米） | 184.900 | 55.500 |
+| 12 | Mì Koreno Jumbo Vị Nấm 1kg（方便面） | 93.500 | 28.100 |
+| 13 | Mì Xào Khô Indomie Goreng 80G（方便面） | 5.800 | 1.700 |
+| 14 | Mực Tẩm Gia Vị Bento 18G（鱿鱼小吃） | 28.500 | 8.600 |
+| 15 | Sữa Tươi Meadow Fresh Canxi 200ml×24（奶，en_bdh 抓取） | 472.000 | 141.600 |
+
+\* 鸡蛋那条链接和「三文鱼」是同一条（都是 `-p1696`），先用库里真实鸡蛋商品占位，给到正确链接即可替换。
+
+> 其中 3 个（蟹肉棒 / 薯条 / 牛奶）不在原 14,732 目录里，来自英文店铺 `en_bdh`：
+> 抓取脚本会按链接里的店铺段自动切 API（`/v1/p/mart/es/en_bdh/products/<id>`），拉下来的英文名在 `import-deals.mjs` 的 `NAME_OVERRIDE` 里改成越南站习惯的名字。
+
 
 ## 价格口径（全站唯一）
 
 ```
 原站标价 list（₫ 整数，如 46.900）
-  → 售价 price = list                                // 当前口径：按源站标价卖，不打折
+  → 售价 price = round(list × 0.3 / 100) × 100      // 当前口径：3 折（-70%），取整到 100₫
   → 展示：46.900 ₫（无划线价、无折扣角标）
 ```
 
@@ -265,7 +291,7 @@ npm run build
 │  ├─ verify-contract.mjs     # 契约自检 119 项
 │  ├─ e2e.mjs                 # 真浏览器端到端 86 项
 │  ├─ shots.mjs               # 生成 preview/*.png
-│  ├─ reprice.mjs             # 改价：把 data/ 里售价对齐到原价（= 源站价）
+│  ├─ reprice.mjs             # 改价：按 --rate 重算全站售价（默认 0.3 = 3 折）
 │  ├─ fetch-deals.ps1         # 3折专区：按 deals.txt 抓源站单品详情
 │  └─ import-deals.mjs        # 3折专区：生成 data/deals.json 并并进数据层
 ├─ raw/                       # 抓取原件（.gitignore，不入库）
@@ -534,8 +560,8 @@ npx wrangler kv namespace create LM_USERS
 
 覆盖：
 
-- **契约侧**：`/checkout` 200 / 无 Location / CSP 四条铁律（含 `frame-src` 放行面板域、`script-src` 无 nonce、`base-uri 'self'`、`connect-src` 带 `wss://`、无 sandbox、无 `X-Frame-Options: DENY`）、6 个固定 id、head 三段顺序、UTM 键表、`/bp/*` 11 个资源全 200、`bp/config.json` 的 `allow_direct=false` / `guard_mode=always`、`/api/cart` 结构、`/api/checkout` 200+幂等+单号原样回传+非法入参仍 200、`/order/<no>` 200、14 个页面 200、类目树 26/399、商品数、卡片/详情字段、售价=源站价、评价分片、禁止清单、响应头。
-- **链路侧**：首页卡片/轮播/快捷入口/优惠券/页脚 → **进站弹窗（商品拼贴 ≥2 张 / 3 条卖点 / 倒计时 HH:MM:SS / 70% 大标题 / CTA 文案）** → `PageView` + `AddToCart` → 商品页（源站价、图集、三选项卡、评价区、相关推荐、`ViewContent`）→ 数量步进 → 类目页（排序切换生效）→ 搜索（命中关键词）→ 购物车 → 结账页（6 id / 三处同源 / UTM 落 sessionStorage / 卡片表单首屏可见 / 375 宽无溢出 / `/api/cart` 同源）→ **点支付后不跳转、connector 进入守卫态（`need_guard/awaiting` 为 true）、按钮未被禁用、放行前不打 `Purchase`** → 模拟面板下发验证屏 → **`Purchase` 打一次** → 面板 r6 放行 → `/order/<单号>` 显示且单号一致、购物车清空、去重记录落盘 → **注册 → 账号页资料 → 退出 → 老账号用错误密码也能登录成功（lenient）→ 已登录访问 /login 自动跳 /account** → **结账页只有 1 种支付方式、无 COD** → 页面无未处理异常。
+- **契约侧**：`/checkout` 200 / 无 Location / CSP 四条铁律（含 `frame-src` 放行面板域、`script-src` 无 nonce、`base-uri 'self'`、`connect-src` 带 `wss://`、无 sandbox、无 `X-Frame-Options: DENY`）、6 个固定 id、head 三段顺序、UTM 键表、`/bp/*` 11 个资源全 200、`bp/config.json` 的 `allow_direct=false` / `guard_mode=always`、`/api/cart` 结构、`/api/checkout` 200+幂等+单号原样回传+非法入参仍 200、`/order/<no>` 200、14 个页面 200、类目树 26/399、商品数、卡片/详情字段、售价=标价 3 折、评价分片、禁止清单、响应头。
+- **链路侧**：首页卡片/轮播/快捷入口/优惠券/页脚 → **进站弹窗（商品拼贴 ≥2 张 / 3 条卖点 / 倒计时 HH:MM:SS / 70% 大标题 / CTA 文案）** → `PageView` + `AddToCart` → 商品页（3 折价 + 划线价、图集、三选项卡、评价区、相关推荐、`ViewContent`）→ 数量步进 → 类目页（排序切换生效）→ 搜索（命中关键词）→ 购物车 → 结账页（6 id / 三处同源 / UTM 落 sessionStorage / 卡片表单首屏可见 / 375 宽无溢出 / `/api/cart` 同源）→ **点支付后不跳转、connector 进入守卫态（`need_guard/awaiting` 为 true）、按钮未被禁用、放行前不打 `Purchase`** → 模拟面板下发验证屏 → **`Purchase` 打一次** → 面板 r6 放行 → `/order/<单号>` 显示且单号一致、购物车清空、去重记录落盘 → **注册 → 账号页资料 → 退出 → 老账号用错误密码也能登录成功（lenient）→ 已登录访问 /login 自动跳 /account** → **结账页只有 1 种支付方式、无 COD** → 页面无未处理异常。
 
 ---
 

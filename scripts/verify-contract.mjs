@@ -218,7 +218,11 @@ const main = async () => {
   if (prod) {
     ok('详情含图集', (prod.gallery || []).length > 0);
     ok('详情含价格（整数 ₫）', Number.isInteger(prod.price) && prod.price > 0);
-    ok('售价与源站一致（= 原价）', prod.price === prod.list, `${prod.price}/${prod.list}`);
+    ok(
+      '售价 = 标价 3 折',
+      Math.abs(prod.price / prod.list - 0.3) < 0.02,
+      `${prod.price}/${prod.list} = ${(prod.price / prod.list).toFixed(3)}`
+    );
   }
 
   const revShard = JSON.parse((await head(`/data/reviews/${Number(cat.items[0].id) % 100}.json`)).text);

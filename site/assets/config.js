@@ -28,9 +28,9 @@ window.LM_CONFIG = {
   currency: 'VND',
   locale: 'vi',
   /* 价格口径：售价 = 原价 × discountRate（再取整到 100₫）
-   * 当前 1 = 按源站标价卖（不打折）；改回 0.6 就是全站 6 折 */
-  discountRate: 1,
-  discountLabel: '',
+   * 当前 0.3 = 全站 3 折（划线价 + -70% 角标）；改 1 就是按源站标价卖 */
+  discountRate: 0.3,
+  discountLabel: '-70%',
   freeShipThreshold: 0, // 0 = 全站免运费（运费恒为 0）
 
   /* ---- 进站弹窗（高 CTR 促销页）---- */

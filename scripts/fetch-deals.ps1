@@ -1,4 +1,4 @@
-# =============================================================================
+﻿# =============================================================================
 # 抓「3折专区」商品（源站单品链接 → raw/deals/<id>.json + raw/deals/reviews-<id>.json）
 #
 # 用法：
@@ -13,7 +13,8 @@
 # =============================================================================
 param(
   [string]$List = 'deals.txt',
-  [switch]$Force
+  [switch]$Force,
+  [switch]$SkipCatalog
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,7 +23,8 @@ Add-Type -AssemblyName System.Net.Http
 
 $Root   = Split-Path -Parent $PSScriptRoot
 $Origin = 'https://www.lottemart.vn'
-$Api    = "$Origin/v1/p/mart/es/vi_nsg"
+$ApiBase = "$Origin/v1/p/mart/es"
+$Api    = "$ApiBase/vi_nsg"
 $UA     = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 $Dir    = Join-Path $Root 'raw\deals'
 $ListPath = if ([System.IO.Path]::IsPathRooted($List)) { $List } else { Join-Path $Root $List }
@@ -61,33 +63,49 @@ if (-not (Test-Path $ListPath)) {
 }
 
 $ids = New-Object System.Collections.Generic.List[string]
+$storeOf = @{}
 foreach ($line in Get-Content -Encoding UTF8 $ListPath) {
   $t = $line.Trim()
   if (-not $t -or $t.StartsWith('#')) { continue }
+  # 店铺取自链接里的语言/店铺段：/en-bdh/ → en_bdh，/vi-nsg/ → vi_nsg
+  $store = 'vi_nsg'
+  if ($t -match 'lottemart\.vn/([a-z0-9-]+)/product/') { $store = ($Matches[1] -replace '-', '_') }
   if ($t -match '-p(\d+)') { $id = $Matches[1] }
   elseif ($t -match '(\d{3,})') { $id = $Matches[1] }
   else { Write-Host "[deals] 看不懂这行，跳过：$t"; continue }
-  if (-not $ids.Contains($id)) { $ids.Add($id) }
+  if (-not $ids.Contains($id)) { $ids.Add($id); $storeOf[$id] = $store }
 }
 
 Write-Host "[deals] 清单 $($ids.Count) 个商品"
 
+# -SkipCatalog：已经在 data/search.json 里的商品不重抓（直接复用现有 catalog 数据）
+$catalog = New-Object 'System.Collections.Generic.HashSet[string]'
+if ($SkipCatalog) {
+  $searchFile = Join-Path $Root 'data\search.json'
+  if (Test-Path $searchFile) {
+    $arr = Get-Content -Raw -Encoding UTF8 $searchFile | ConvertFrom-Json
+    foreach ($x in $arr) { [void]$catalog.Add([string]$x.i) }
+    Write-Host "[deals] catalog 内 $($catalog.Count) 个商品可跳过"
+  }
+}
+
 $ok = 0
 foreach ($id in $ids) {
+  if ($SkipCatalog -and $catalog.Contains($id)) { Write-Host "[have] $id（已在 catalog，跳过抓取）"; $ok++; continue }
   $out = Join-Path $Dir "$id.json"
   if (-not $Force -and (Test-Path $out) -and (Get-Item $out).Length -gt 2000) {
     Write-Host "[skip] $id（已存在，-Force 可重抓）"
     $ok++
     continue
   }
-  $json = Get-Json "$Api/products/$id"
-  if (-not $json) { Write-Host "[fail] $id"; continue }
+  $json = Get-Json "$ApiBase/$($storeOf[$id])/products/$id"
+  if (-not $json) { Write-Host "[fail] $id（$($storeOf[$id]) 店铺 拿不到）"; continue }
   [System.IO.File]::WriteAllText($out, $json, [System.Text.UTF8Encoding]::new($false))
 
   # 评价（拿不到不影响主流程）
   $revOut = Join-Path $Dir "reviews-$id.json"
   if ($Force -or -not (Test-Path $revOut)) {
-    $rev = Get-Json "$Api/products/$id/reviews?pageNumber=1&pageSize=50&sort[created_at]=desc"
+    $rev = Get-Json "$ApiBase/$($storeOf[$id])/products/$id/reviews?pageNumber=1&pageSize=50&sort[created_at]=desc"
     if ($rev) { [System.IO.File]::WriteAllText($revOut, $rev, [System.Text.UTF8Encoding]::new($false)) }
   }
 

@@ -57,7 +57,7 @@
       <h2 class="lm-sec-title">${esc(title)}</h2>
       ${sub ? `<p class="lm-deals-sub">${esc(sub)}</p>` : ''}
     </div>
-    <span class="lm-deals-badge">-70%</span>
+    <span class="lm-deals-badge">${deals.items.length} sản phẩm</span>
   </div>
   <div class="lm-rail-nav">
     <button class="prev" type="button" data-rail-prev aria-label="Trước"></button>

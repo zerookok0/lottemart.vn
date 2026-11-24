@@ -155,7 +155,7 @@ const main = async () => {
     };
   `);
   ok('3折专区渲染', deals.exists && deals.cards >= 3, `cards=${deals.cards} title=${deals.title.slice(0, 28)}`);
-  ok('3折专区有副标题与 -70% 角标', deals.sub.length > 0 && deals.badge === '-70%', `${deals.badge} / ${deals.sub.slice(0, 24)}`);
+  ok('3折专区有副标题与商品数角标', deals.sub.length > 0 && /sản phẩm/.test(deals.badge), `${deals.badge} / ${deals.sub.slice(0, 24)}`);
   ok('3折专区商品可点进详情页', /^\/vi-nsg\/product\//.test(deals.firstHref), deals.firstHref);
   ok('3折专区商品有源站价', /\d/.test(deals.firstPrice), deals.firstPrice);
   const pv = await ev(`return (window.LM.pixel.log||[]).filter(x=>x.name==='PageView').length;`);

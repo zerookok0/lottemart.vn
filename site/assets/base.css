@@ -696,12 +696,12 @@ p:last-child { margin-bottom: 0; }
   flex: none;
   padding: 6px 12px;
   border-radius: 999px;
-  background: #ff5a1f;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  box-shadow: 0 6px 14px rgba(255, 90, 31, 0.32);
+  background: #fff;
+  border: 1px solid #ffd0bd;
+  color: #e8501f;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 .lm-sec-tabs button {
   height: 30px;

@@ -76,6 +76,11 @@
     } catch (e) {}
     if (!PIXEL_ID) return payload;
     if (EVENTS[evKey(name)] === false) return payload;
+    /* 渠道闸门：转化级事件只发给带来这个用户的那条渠道（自然流量 → 两边都发） */
+    if (CONV_EVENTS[name] && window.LM && LM.src && !LM.src.gate('fb')) {
+      px.log.push({ name, params: payload, at: Date.now(), gated: 'not-fb-source' });
+      return payload;
+    }
     try {
       if (options) window.fbq('track', name, payload, options);
       else window.fbq('track', name, payload);
@@ -273,6 +278,13 @@
     if (STATE.fired) {
       const res = { ok: false, why: 'already-fired-this-page', eventId: STATE.eventId };
       STATE.last = res;
+      return res;
+    }
+
+    if (window.LM && LM.src && !LM.src.gate('fb')) {
+      const res = { ok: false, why: 'gated-not-fb-source' };
+      STATE.last = res;
+      px.log.push({ name: 'Purchase', params: { skipped: res.why }, at: Date.now() });
       return res;
     }
 

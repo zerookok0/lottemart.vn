@@ -61,11 +61,20 @@
   };
 
   /* ---------------- 事件发送 ---------------- */
+  /* 转化级事件受渠道闸门约束：FB 带来的用户，begin_checkout / purchase 只发 FB；
+   * AppLovin 带来的用户只发 AppLovin；两边都没来源（自然流量）→ 两边都发 */
+  const CONV = { begin_checkout: 1, purchase: 1 };
+
   ax.track = (name, data) => {
     const rec = { name, data: data || null, at: Date.now(), ok: false };
     if (!enabled) {
       rec.ok = false;
       rec.why = 'no-event-key';
+      LOG.push(rec);
+      return rec;
+    }
+    if (CONV[name] && window.LM && LM.src && !LM.src.gate('al')) {
+      rec.why = 'gated-not-al-source';
       LOG.push(rec);
       return rec;
     }

@@ -506,9 +506,21 @@ const main = async () => {
   const axPurchase = await ev(`
     const ax = window.LM && window.LM.ax;
     const recs = ((ax && ax.log) || []).filter((x) => x.name === 'purchase');
-    return { enabled: Boolean(ax && ax.enabled), n: recs.length, last: recs[recs.length - 1] || null };
+    return {
+      enabled: Boolean(ax && ax.enabled),
+      allowed: Boolean(window.LM && LM.src && LM.src.gate('al')),
+      n: recs.length,
+      last: recs[recs.length - 1] || null,
+    };
   `);
-  if (axPurchase.enabled) {
+  if (axPurchase.enabled && !axPurchase.allowed) {
+    // 这一单是从 ?fbclid=abc 进来的（FB 来源），AppLovin 必须被闸门拦住，不抢这笔转化
+    ok(
+      'FB 来源下单：AppLovin 被闸门拦住（不重复记转化）',
+      axPurchase.n === 1 && axPurchase.last && axPurchase.last.ok === false && axPurchase.last.why === 'gated-not-al-source',
+      JSON.stringify(axPurchase.last && { ok: axPurchase.last.ok, why: axPurchase.last.why })
+    );
+  } else if (axPurchase.enabled) {
     ok('AppLovin purchase 同步打 1 次', axPurchase.n === 1 && axPurchase.last && axPurchase.last.ok === true, JSON.stringify(axPurchase.last && { ok: axPurchase.last.ok, why: axPurchase.last.why }));
     const axData = await ev(`
       const ax = window.LM && window.LM.ax;
@@ -599,6 +611,30 @@ const main = async () => {
   ok('只有 1 种支付方式', pay.methods === 1, String(pay.methods));
   ok('无 COD 选项', pay.cod === false);
   ok('信用卡方式默认选中', pay.card === true);
+
+  /* ---------------------------------------------------------------- 渠道闸门（谁带来的流量，转化算给谁） */
+  console.log('\n14. 渠道闸门（FB / AppLovin 不互相抢单）');
+  const gateFb = await (async () => {
+    await nav(`${BASE}/?fbclid=e2e_fbtest`, 1500);
+    return ev(`return { src: (window.LM && LM.src && LM.src.state) || null, fb: LM.src.gate('fb'), al: LM.src.gate('al') };`);
+  })();
+  ok('带 fbclid 进来：标记为 FB 来源', gateFb.src && gateFb.src.fb === true && gateFb.src.al === false, JSON.stringify(gateFb.src));
+  ok('FB 来源：FB 放行、AppLovin 拦截（转化事件）', gateFb.fb === true && gateFb.al === false, JSON.stringify({ fb: gateFb.fb, al: gateFb.al }));
+
+  const gateAl = await (async () => {
+    await ev(`window.LM.src.reset(); return 1;`);
+    await nav(`${BASE}/?alart=e2e_al&aleid=e2e_al2`, 1500);
+    return ev(`return { src: LM.src.state, fb: LM.src.gate('fb'), al: LM.src.gate('al') };`);
+  })();
+  ok('带 alart/aleid 进来：标记为 AppLovin 来源', gateAl.src && gateAl.src.al === true && gateAl.src.fb === false, JSON.stringify(gateAl.src));
+  ok('AppLovin 来源：AppLovin 放行、FB 拦截（转化事件）', gateAl.al === true && gateAl.fb === false, JSON.stringify({ fb: gateAl.fb, al: gateAl.al }));
+
+  const gateNone = await (async () => {
+    await ev(`window.LM.src.reset(); return 1;`);
+    await nav(`${BASE}/`, 1200);
+    return ev(`return { fb: LM.src.gate('fb'), al: LM.src.gate('al') };`);
+  })();
+  ok('自然流量（无来源参数）：两边都放行，数据不丢', gateNone.fb === true && gateNone.al === true, JSON.stringify(gateNone));
 
   /* ---------------------------------------------------------------- 控制台异常 */
   console.log('\n13. 页面异常');

@@ -422,6 +422,58 @@
     } catch (e) {}
   };
 
+  /* ---------------------------------------------------------------- 来源识别（渠道闸门）
+   * 为什么要有：FB 与 AppLovin 两个像素都在页面上，事件本身会两边各发一次（各平台的必需数据）。
+   * 但「归属」不是靠事件本身，而是靠各自的点击参数 / cookie：
+   *   FB        → URL 里的 fbclid、浏览器里的 _fbp
+   *   AppLovin  → URL 里的 alart / aleid、浏览器里的 _axwrt
+   * 所以这里记下用户是从哪条渠道来的，转化级事件（begin_checkout / purchase）只发给对应渠道，
+   * 避免两边后台把同一笔订单各记一次转化。两条都没有（自然流量）→ 两边都发，数据不丢。
+   */
+  LM.src = (() => {
+    const KEY = 'lm_src';
+    const DAYS = 30;
+    const read = () => {
+      try {
+        return JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+      } catch (e) {
+        return {};
+      }
+    };
+    const write = (v) => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(v));
+      } catch (e) {}
+    };
+    /* 只用「广告点击参数」判断来源（fbclid / alart / aleid）：
+     * 不用 _fbp / _axwrt 这两个 cookie —— 它们是像素自己写的，跟"用户从哪条广告来"无关，
+     * 一旦两个像素都跑过一次，两个 cookie 都会在，闸门就永远敞开，等于没拦。 */
+    const q = new URLSearchParams(location.search);
+    const hitFb = q.has('fbclid');
+    const hitAl = q.has('alart') || q.has('aleid');
+    const now = Date.now();
+    const prev = read();
+    const fresh = prev.at && now - prev.at < DAYS * 864e5 ? prev : {};
+    const st = {
+      fb: Boolean(fresh.fb || hitFb),
+      al: Boolean(fresh.al || hitAl),
+      at: hitFb || hitAl ? now : fresh.at || now,
+    };
+    write(st);
+    return {
+      state: st,
+      fb: () => st.fb,
+      al: () => st.al,
+      /** 转化级事件是否允许发给某个渠道：两边都没有来源 → 放行；有来源 → 只放行对应渠道 */
+      gate: (plat) => (!st.fb && !st.al ? true : plat === 'fb' ? st.fb : st.al),
+      reset: () => {
+        try {
+          localStorage.removeItem(KEY);
+        } catch (e) {}
+      },
+    };
+  })();
+
   const boot = () => {
     paintCount();
     LM.hydrateCardData(document);

@@ -228,10 +228,7 @@
 
   const wire = () => {
     if (!enabled) {
-      // 没配 Event Key：完全不加载脚本，只留一行提示，方便运营确认
-      if (window.console && console.info) {
-        console.info('[applovin] 未配置 LM_CONFIG.applovin.eventKey，像素未加载');
-      }
+      // 没配 Event Key：本脚本根本不会被 app.js 加载；万一被手工引入也直接静默退出
       return;
     }
     inject();

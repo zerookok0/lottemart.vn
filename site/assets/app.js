@@ -406,9 +406,26 @@
   };
 
   /* ---------------------------------------------------------------- 启动 */
+  /* AppLovin 像素：只有填了 Event Key 才按需加载 axpixel.js
+   * —— 不填就零请求、零全局、零 DOM 变化，对现有任何功能都没有影响 */
+  const loadAppLovin = () => {
+    try {
+      const ax = CFG.applovin || {};
+      if (ax.enabled === false) return;
+      if (!String(ax.eventKey || '').trim()) return;
+      if (document.querySelector('script[data-axpixel]')) return;
+      const s = document.createElement('script');
+      s.src = '/assets/axpixel.js';
+      s.async = true;
+      s.setAttribute('data-axpixel', '1');
+      document.head.appendChild(s);
+    } catch (e) {}
+  };
+
   const boot = () => {
     paintCount();
     LM.hydrateCardData(document);
+    loadAppLovin();
     /* 部署指纹：控制台里能看出线上跑的是哪次构建（排查"改了没生效"用） */
     fetch('/version.json', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))

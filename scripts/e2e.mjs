@@ -166,22 +166,43 @@ const main = async () => {
   ok('专区卡片 = 3 折价 + 划线原价 + -70%', Boolean(deals.firstOld) && /70%/.test(deals.firstOff), `${deals.firstPrice} / ${deals.firstOld} / ${deals.firstOff}`);
   ok('其它轨道商品不打折（无 -70% 角标）', deals.normalPrice.off === false, JSON.stringify(deals.normalPrice));
 
-  /* ---------------- AppLovin 像素 ---------------- */
-  const axState = await ev(`
-    const ax = window.LM && window.LM.ax;
+  /* ---------------- AppLovin 像素（未配 Key 时必须零影响） ---------------- */
+  const axOff = await ev(`
+    const reqs = (performance.getEntriesByType('resource') || []).map((x) => x.name).filter((u) => /axon\\.ai/i.test(u));
     return {
-      exists: Boolean(ax),
-      track: typeof (ax && ax.track) === 'function',
-      enabled: Boolean(ax && ax.enabled),
-      item: ax && ax.item ? ax.item({ id: '9', name: 'Test', price: 30000, list: 100000, qty: 2, brand: 'X' }) : null,
+      tag: document.querySelectorAll('script[data-axpixel]').length,
+      global: typeof window.axon,
+      mod: typeof (window.LM && window.LM.ax),
+      reqs,
     };
   `);
-  ok('AppLovin 模块就绪（LM.ax.track 可用）', axState.exists && axState.track);
-  ok('未配 Event Key 时像素不加载', axState.enabled === false);
+  ok('未配 Event Key：不加载脚本 / 不引入全局', axOff.tag === 0 && axOff.global === 'undefined' && axOff.mod === 'undefined', JSON.stringify(axOff));
+  ok('未配 Event Key：没有任何 axon.ai 请求', axOff.reqs.length === 0, axOff.reqs.join(','));
+
+  // 手动引入一次，验证模块本身的结构与"无 Key 不发送"的兜底（不产生网络请求）
+  const axManual = await ev(`
+    await new Promise((res) => {
+      const s = document.createElement('script');
+      s.src = '/assets/axpixel.js?e2e=1';
+      s.onload = res;
+      s.onerror = res;
+      document.head.appendChild(s);
+    });
+    const ax = window.LM && window.LM.ax;
+    const r = ax && ax.track ? ax.track('view_item', { currency: 'VND', value: 1, items: [] }) : null;
+    return {
+      exists: Boolean(ax),
+      enabled: Boolean(ax && ax.enabled),
+      item: ax && ax.item ? ax.item({ id: '9', name: 'Test', price: 30000, list: 100000, qty: 2, brand: 'X' }) : null,
+      res: r && { ok: r.ok, why: r.why },
+    };
+  `);
+  ok('AppLovin 模块结构正确（LM.ax.track 可用）', axManual.exists && Boolean(axManual.res), JSON.stringify(axManual.res));
+  ok('无 Key 时 track 直接拒绝发送（ok=false, no-event-key）', axManual.res && axManual.res.ok === false && axManual.res.why === 'no-event-key');
   ok(
     'Axon item 结构正确（item_id/price/quantity/discount）',
-    Boolean(axState.item) && axState.item.item_id === '9' && axState.item.price === 30000 && axState.item.quantity === 2 && axState.item.discount === 70000,
-    JSON.stringify(axState.item)
+    Boolean(axManual.item) && axManual.item.item_id === '9' && axManual.item.price === 30000 && axManual.item.quantity === 2 && axManual.item.discount === 70000,
+    JSON.stringify(axManual.item)
   );
   const pxBridge = await ev(`
     return new Promise((res) => {

@@ -81,7 +81,7 @@ window.LM_CONFIG = {
    */
   applovin: {
     enabled: true,
-    eventKey: '', // 例：'1a2b3c4d5e6f7g8h'
+    eventKey: '736af0a3-f6a1-4e98-80f3-1e70ab180f37',
     purchaseDedupeHours: 24,
     events: {
       pageView: true,

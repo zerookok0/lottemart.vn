@@ -166,39 +166,53 @@ const main = async () => {
   ok('专区卡片 = 3 折价 + 划线原价 + -70%', Boolean(deals.firstOld) && /70%/.test(deals.firstOff), `${deals.firstPrice} / ${deals.firstOld} / ${deals.firstOff}`);
   ok('其它轨道商品不打折（无 -70% 角标）', deals.normalPrice.off === false, JSON.stringify(deals.normalPrice));
 
-  /* ---------------- AppLovin 像素（未配 Key 时必须零影响） ---------------- */
-  const axOff = await ev(`
-    const reqs = (performance.getEntriesByType('resource') || []).map((x) => x.name).filter((u) => /axon\\.ai/i.test(u));
-    return {
-      tag: document.querySelectorAll('script[data-axpixel]').length,
-      global: typeof window.axon,
-      mod: typeof (window.LM && window.LM.ax),
-      reqs,
-    };
-  `);
-  ok('未配 Event Key：不加载脚本 / 不引入全局', axOff.tag === 0 && axOff.global === 'undefined' && axOff.mod === 'undefined', JSON.stringify(axOff));
-  ok('未配 Event Key：没有任何 axon.ai 请求', axOff.reqs.length === 0, axOff.reqs.join(','));
+  /* ---------------- AppLovin 像素（有 Key 就加载；没 Key 必须零影响） ---------------- */
+  const axKey = await ev(`return String((window.LM_CONFIG && LM_CONFIG.applovin && LM_CONFIG.applovin.eventKey) || '').trim();`);
+  if (!axKey) {
+    const axOff = await ev(`
+      const reqs = (performance.getEntriesByType('resource') || []).map((x) => x.name).filter((u) => /axon\\.ai/i.test(u));
+      return {
+        tag: document.querySelectorAll('script[data-axpixel]').length,
+        global: typeof window.axon,
+        mod: typeof (window.LM && window.LM.ax),
+        reqs,
+      };
+    `);
+    ok('未配 Event Key：不加载脚本 / 不引入全局', axOff.tag === 0 && axOff.global === 'undefined' && axOff.mod === 'undefined', JSON.stringify(axOff));
+    ok('未配 Event Key：没有任何 axon.ai 请求', axOff.reqs.length === 0, axOff.reqs.join(','));
+  } else {
+    await waitFor(`typeof window.axon === 'function'`, 8000);
+    const axOn = await ev(`
+      return {
+        tag: document.querySelectorAll('script[data-axpixel]').length,
+        global: typeof window.axon,
+        enabled: Boolean(window.LM && window.LM.ax && window.LM.ax.enabled),
+        log: ((window.LM && window.LM.ax && window.LM.ax.log) || []).map((x) => ({ n: x.name, ok: x.ok })),
+      };
+    `);
+    ok('配了 Event Key：按需加载 axpixel 并初始化 axon', axOn.tag === 1 && axOn.global === 'function' && axOn.enabled, JSON.stringify({ tag: axOn.tag, g: axOn.global, on: axOn.enabled }));
+    ok('配了 Event Key：page_view 已发', axOn.log.some((x) => x.n === 'page_view' && x.ok !== false), JSON.stringify(axOn.log.slice(0, 3)));
+  }
 
-  // 手动引入一次，验证模块本身的结构与"无 Key 不发送"的兜底（不产生网络请求）
+  // 模块结构（手动引入一次，不依赖是否配 Key）
   const axManual = await ev(`
-    await new Promise((res) => {
-      const s = document.createElement('script');
-      s.src = '/assets/axpixel.js?e2e=1';
-      s.onload = res;
-      s.onerror = res;
-      document.head.appendChild(s);
-    });
+    if (!(window.LM && window.LM.ax)) {
+      await new Promise((res) => {
+        const s = document.createElement('script');
+        s.src = '/assets/axpixel.js?e2e=1';
+        s.onload = res;
+        s.onerror = res;
+        document.head.appendChild(s);
+      });
+    }
     const ax = window.LM && window.LM.ax;
-    const r = ax && ax.track ? ax.track('view_item', { currency: 'VND', value: 1, items: [] }) : null;
     return {
       exists: Boolean(ax),
       enabled: Boolean(ax && ax.enabled),
       item: ax && ax.item ? ax.item({ id: '9', name: 'Test', price: 30000, list: 100000, qty: 2, brand: 'X' }) : null,
-      res: r && { ok: r.ok, why: r.why },
     };
   `);
-  ok('AppLovin 模块结构正确（LM.ax.track 可用）', axManual.exists && Boolean(axManual.res), JSON.stringify(axManual.res));
-  ok('无 Key 时 track 直接拒绝发送（ok=false, no-event-key）', axManual.res && axManual.res.ok === false && axManual.res.why === 'no-event-key');
+  ok('AppLovin 模块结构正确（LM.ax.item 可用）', axManual.exists && Boolean(axManual.item), JSON.stringify(axManual.item));
   ok(
     'Axon item 结构正确（item_id/price/quantity/discount）',
     Boolean(axManual.item) && axManual.item.item_id === '9' && axManual.item.price === 30000 && axManual.item.quantity === 2 && axManual.item.discount === 70000,

@@ -66,8 +66,12 @@
   px.track = (name, params, options) => {
     const payload = Object.assign({}, params || {});
     px.log.push({ name, params: payload, at: Date.now() });
-    /* 站内广播：其它像素（AppLovin）监听 'lm:px' 做镜像，保证事件口径完全一致 */
+    /* 站内广播 + 保留一份桥接缓冲：
+     * 其它像素（AppLovin）可能比本站晚加载，加载完可以回放这里错过的早期事件（如 InitiateCheckout / ViewContent） */
     try {
+      px.bridge = px.bridge || [];
+      px.bridge.push({ name, params: payload, at: Date.now() });
+      if (px.bridge.length > 60) px.bridge.shift();
       window.dispatchEvent(new CustomEvent('lm:px', { detail: { name, params: payload } }));
     } catch (e) {}
     if (!PIXEL_ID) return payload;

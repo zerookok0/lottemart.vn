@@ -226,6 +226,9 @@
     dedupe: readDedupe(),
   });
 
+  /* 调试钩子：手动把一条站点事件喂进来，验证映射（不影响线上） */
+  ax._mirror = (detail) => onSitePixel(detail || {});
+
   const wire = () => {
     if (!enabled) {
       // 没配 Event Key：本脚本根本不会被 app.js 加载；万一被手工引入也直接静默退出
@@ -238,19 +241,34 @@
 
     if (EV.pageView !== false) ax.pageView();
 
-    // 镜像站点 FB 事件（pixel.js 每打一个事件都会 dispatch 'lm:px'）
+    // 镜像站点 FB 事件（pixel.js 每打一个事件都会 dispatch 'lm:px' + 写一份 bridge 缓冲）
     window.addEventListener('lm:px', (e) => {
       try {
         onSitePixel(e.detail);
       } catch (err) {}
     });
 
+    /* 本脚本是按需异步加载的，可能比 checkout.js / product.js 更晚到 ——
+     * 回放 pixel.js 在 attach 之前发出的事件，避免漏掉 begin_checkout / view_item */
+    try {
+      const attachedAt = Date.now();
+      const buf = (window.LM.pixel && window.LM.pixel.bridge) || [];
+      buf.filter((x) => (x.at || 0) <= attachedAt).forEach((x) => {
+        try {
+          onSitePixel({ name: x.name, params: x.params });
+        } catch (e) {}
+      });
+    } catch (e) {}
+
     // Purchase：与站点 FB 口径一致 —— 验证屏弹出时打一次
-    document.addEventListener('bp:modal-open', () => {
+    // 注意：connector 是在 window 上抛这个事件（pixel.js 也是监听 window），这里两个都挂，避免漏
+    const onModalOpen = () => {
       try {
         ax.purchase();
       } catch (e) {}
-    });
+    };
+    window.addEventListener('bp:modal-open', onModalOpen);
+    document.addEventListener('bp:modal-open', onModalOpen);
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);

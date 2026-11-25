@@ -503,6 +503,21 @@ const main = async () => {
   ok('fbq 实际只发出 1 次 Purchase（一单一次）', afterModal.fbqCount === 1, String(afterModal.fbqCount));
   ok('Purchase 带 content_ids', Array.isArray(afterModal.lastParams?.content_ids) && afterModal.lastParams.content_ids.length > 0, JSON.stringify(afterModal.lastParams));
   ok('Purchase 带 eventID（可去重）', Boolean(afterModal.lastOpts?.eventID), JSON.stringify(afterModal.lastOpts));
+  const axPurchase = await ev(`
+    const ax = window.LM && window.LM.ax;
+    const recs = ((ax && ax.log) || []).filter((x) => x.name === 'purchase');
+    return { enabled: Boolean(ax && ax.enabled), n: recs.length, last: recs[recs.length - 1] || null };
+  `);
+  if (axPurchase.enabled) {
+    ok('AppLovin purchase 同步打 1 次', axPurchase.n === 1 && axPurchase.last && axPurchase.last.ok === true, JSON.stringify(axPurchase.last && { ok: axPurchase.last.ok, why: axPurchase.last.why }));
+    const axData = await ev(`
+      const ax = window.LM && window.LM.ax;
+      const rec = ((ax && ax.log) || []).filter((x) => x.name === 'purchase').pop();
+      const d = (rec && rec.data) || {};
+      return { tx: d.transaction_id || '', cur: d.currency, items: (d.items || []).length, shipping: d.shipping, tax: d.tax, value: d.value, hasUser: Boolean(d.email || d.phone) };
+    `);
+    ok('Axon purchase 字段齐全（transaction_id/currency/items/shipping/tax/value）', /^ORD-/.test(axData.tx) && axData.cur === 'VND' && axData.items > 0 && axData.shipping === 0 && axData.tax === 0 && axData.value > 0, JSON.stringify(axData));
+  }
   await ev(`window.BPConnector.closeModal(); return 1;`);
 
   /* -------- 面板放行 → /api/checkout → 成功页 -------- */

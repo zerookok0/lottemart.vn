@@ -228,6 +228,28 @@ npm run build
 > 顺序是「链接里的店铺 → vi_bdh → vi_nsg → en_bdh」，某一档 404 就自动往下一档试；`vi_bdh` 能给出越南语名称，比英文店好。
 
 
+## AppLovin（Axon）Pixel
+
+和 Facebook Pixel 并行跑，互不影响；**留空 Event Key 就完全不加载**（不发任何请求）。
+
+| 项 | 说明 |
+|---|---|
+| 配置 | `site/assets/config.js` → `applovin: { enabled, eventKey, purchaseDedupeHours, events }` |
+| Event Key 从哪来 | AppLovin 后台 → **Account → API Keys** 里的 Event Key（不是 Pixel ID） |
+| 加载方式 | 官方片段：注入 `https://s.axon.ai/pixel.js` → `axon('init')` → `axon('track', name, data)` |
+| 事件口径 | 与站点 FB 事件**同源**：`pixel.js` 每打一个事件都 `dispatch` 一个 `lm:px`，`axpixel.js` 监听后镜像 |
+| 映射 | `PageView→page_view` · `ViewContent→view_item` · `AddToCart→add_to_cart` · `InitiateCheckout→begin_checkout` · **`Purchase→purchase`** |
+| Purchase 时机 | 与 FB 一致：验证屏弹出（`bp:modal-open`）时打一次，按订单号 **24h 去重**（localStorage `lm_ax_purchase`） |
+| purchase 字段 | `currency` `items[]` `shipping: 0`（全站免运费）`tax: 0`（已含 VAT）`transaction_id` `value`（小计）`user_data`（结账页邮箱/手机号，AppLovin 自动哈希） |
+| item 结构 | `item_id` `item_name` `price` `quantity` `item_brand` `discount`（原价−售价）；**不传 `image_url`** —— Axon 只认 .png/.jpg/.jpeg，本站商品图是 .webp |
+| CSP | `script-src` 放行 `https://s.axon.ai`，`connect-src` 放行 `https://s.axon.ai https://*.axon.ai`（`public/_headers` + `functions/_middleware.js` + 本地 `scripts/serve.mjs` 三处同步） |
+| 用户识别增强 | 中间件把像素写的 `_axwrt` cookie 回写成一年期第一方 `axwrt`（Path=/，非 HttpOnly），符合 AppLovin 官方建议 |
+
+调试：控制台 `LM.ax.state()`（是否启用、各事件计数、去重表）、`LM.ax.log`（每次发送记录）、`LM.ax.track('view_item', {...})` 手动打点。
+官方校验工具：Chrome 扩展 **AppLovin Pixel Helper**（绿=字段齐全，橙=缺推荐字段，红=缺必填字段）。
+
+> ⚠️ 广告点击参数 `aleid` / `alart` 必须原样保留到落地页 URL，否则归因不了（本站不做任何 query 清洗，落地页直出，符合要求）。
+
 ## 价格口径（全站唯一）
 
 ```

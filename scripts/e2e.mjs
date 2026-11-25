@@ -165,6 +165,47 @@ const main = async () => {
   ok('3折专区商品可点进详情页', /^\/vi-nsg\/product\//.test(deals.firstHref), deals.firstHref);
   ok('专区卡片 = 3 折价 + 划线原价 + -70%', Boolean(deals.firstOld) && /70%/.test(deals.firstOff), `${deals.firstPrice} / ${deals.firstOld} / ${deals.firstOff}`);
   ok('其它轨道商品不打折（无 -70% 角标）', deals.normalPrice.off === false, JSON.stringify(deals.normalPrice));
+
+  /* ---------------- AppLovin 像素 ---------------- */
+  const axState = await ev(`
+    const ax = window.LM && window.LM.ax;
+    return {
+      exists: Boolean(ax),
+      track: typeof (ax && ax.track) === 'function',
+      enabled: Boolean(ax && ax.enabled),
+      item: ax && ax.item ? ax.item({ id: '9', name: 'Test', price: 30000, list: 100000, qty: 2, brand: 'X' }) : null,
+    };
+  `);
+  ok('AppLovin 模块就绪（LM.ax.track 可用）', axState.exists && axState.track);
+  ok('未配 Event Key 时像素不加载', axState.enabled === false);
+  ok(
+    'Axon item 结构正确（item_id/price/quantity/discount）',
+    Boolean(axState.item) && axState.item.item_id === '9' && axState.item.price === 30000 && axState.item.quantity === 2 && axState.item.discount === 70000,
+    JSON.stringify(axState.item)
+  );
+  const pxBridge = await ev(`
+    return new Promise((res) => {
+      const seen = [];
+      const on = (e) => { seen.push(e.detail && e.detail.name); };
+      window.addEventListener('lm:px', on);
+      document.querySelector('.lm-sec:not(.lm-deals) .lm-card [data-add]')?.click();
+      setTimeout(() => { window.removeEventListener('lm:px', on); res(seen); }, 600);
+    });
+  `);
+  ok('站内像素事件已广播（lm:px，供 AppLovin 镜像）', Array.isArray(pxBridge) && pxBridge.includes('AddToCart'), JSON.stringify(pxBridge));
+  // 上面为了验证广播真的点了一次加购：清掉购物车，并把这次的多余记录从像素缓冲里剔掉（保留 PageView 等）
+  await ev(`
+    try { window.LM.cart.clear(); } catch (e) {}
+    try { if (Array.isArray(window.__fbqCalls)) window.__fbqCalls.length = 0; } catch (e) {}
+    try {
+      if (window.LM.pixel && Array.isArray(window.LM.pixel.log)) {
+        window.LM.pixel.log = window.LM.pixel.log.filter((x) => x.name !== 'AddToCart');
+      }
+    } catch (e) {}
+    try { if (window.LM.ax && Array.isArray(window.LM.ax.log)) window.LM.ax.log.length = 0; } catch (e) {}
+    return 1;
+  `);
+  await sleep(300);
   const pv = await ev(`return (window.LM.pixel.log||[]).filter(x=>x.name==='PageView').length;`);
   ok('PageView 打了', pv >= 1, String(pv));
   await waitFor(`!!document.querySelector('[data-promo-modal].open')`, 20000);

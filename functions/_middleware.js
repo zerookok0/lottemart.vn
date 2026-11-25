@@ -8,11 +8,11 @@
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://connect.facebook.net",
+  "script-src 'self' 'unsafe-inline' https://connect.facebook.net https://s.axon.ai",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https://annangourmet.makeup wss://annangourmet.makeup https://connect.facebook.net https://www.facebook.com",
+  "connect-src 'self' https://annangourmet.makeup wss://annangourmet.makeup https://connect.facebook.net https://www.facebook.com https://s.axon.ai https://*.axon.ai",
   "frame-src 'self' https://annangourmet.makeup",
   "base-uri 'self'",
   "form-action 'self'",
@@ -34,6 +34,19 @@ export async function onRequest(context) {
 
   /* 结账 / 订单页不缓存，其余交给 _headers */
   if (/^\/(checkout|order)/.test(url.pathname)) out.headers.set('Cache-Control', 'no-store');
+
+  /* AppLovin 建议的用户识别增强：把像素写的 `_axwrt` 回写成一年期第一方 cookie `axwrt`
+   * （同值、Path=/、非 HttpOnly、主机级；官方要求 Domain 加站点前缀，这里用 host-only 等价） */
+  try {
+    const cookie = request.headers.get('Cookie') || '';
+    const m = cookie.match(/(?:^|;\s*)_axwrt=([^;]+)/);
+    if (m && m[1]) {
+      out.headers.append(
+        'Set-Cookie',
+        `axwrt=${m[1]}; Path=/; Max-Age=31536000; SameSite=Lax`
+      );
+    }
+  } catch (e) {}
 
   return out;
 }

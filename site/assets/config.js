@@ -73,6 +73,25 @@ window.LM_CONFIG = {
     productIds: [],
   },
 
+  /* ---- AppLovin（Axon）Pixel ----
+   * eventKey：AppLovin 后台 → Account → API Keys 里的 Event Key（不是 Pixel ID）
+   * 留空 = 完全不加载 s.axon.ai 的脚本，不产生任何请求
+   * 事件口径与站点 Facebook Pixel 一致：page_view / view_item / add_to_cart / begin_checkout / purchase
+   * （Purchase 在验证屏弹出时打一次，按订单号 24h 去重）
+   */
+  applovin: {
+    enabled: true,
+    eventKey: '', // 例：'1a2b3c4d5e6f7g8h'
+    purchaseDedupeHours: 24,
+    events: {
+      pageView: true,
+      view_item: true,
+      add_to_cart: true,
+      begin_checkout: true,
+      purchase: true,
+    },
+  },
+
   /* 页脚 / 公司信息（与原站一致） */
   company: {
     name: 'CÔNG TY CỔ PHẦN TRUNG TÂM THƯƠNG MẠI LOTTE VIỆT NAM',

@@ -24,11 +24,11 @@ const PORT = Number(process.argv[2] || process.env.PORT || 4173);
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://connect.facebook.net",
+  "script-src 'self' 'unsafe-inline' https://connect.facebook.net https://s.axon.ai",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https://annangourmet.makeup wss://annangourmet.makeup https://connect.facebook.net https://www.facebook.com",
+  "connect-src 'self' https://annangourmet.makeup wss://annangourmet.makeup https://connect.facebook.net https://www.facebook.com https://s.axon.ai https://*.axon.ai",
   "frame-src 'self' https://annangourmet.makeup",
   "base-uri 'self'",
   "form-action 'self'",

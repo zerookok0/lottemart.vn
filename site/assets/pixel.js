@@ -66,6 +66,10 @@
   px.track = (name, params, options) => {
     const payload = Object.assign({}, params || {});
     px.log.push({ name, params: payload, at: Date.now() });
+    /* 站内广播：其它像素（AppLovin）监听 'lm:px' 做镜像，保证事件口径完全一致 */
+    try {
+      window.dispatchEvent(new CustomEvent('lm:px', { detail: { name, params: payload } }));
+    } catch (e) {}
     if (!PIXEL_ID) return payload;
     if (EVENTS[evKey(name)] === false) return payload;
     try {

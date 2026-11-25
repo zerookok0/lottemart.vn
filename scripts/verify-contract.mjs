@@ -201,6 +201,17 @@ const main = async () => {
   ok('首页有商品区块', (home.sections || []).length >= 4, String((home.sections || []).length));
   ok('首页有优惠券', (home.coupons || []).length > 0, String((home.coupons || []).length));
 
+  /* ---------------- AppLovin（Axon）Pixel ---------------- */
+  const axCfg = (await head('/assets/config.js')).text;
+  ok('config.js 有 applovin 配置块', /applovin\s*:/.test(axCfg) && /eventKey/.test(axCfg));
+  const axJs = await head('/assets/axpixel.js');
+  ok('AppLovin 像素脚本可取', axJs.status === 200 && /axon/.test(axJs.text), `status=${axJs.status}`);
+  const axHome = await head('/');
+  ok('CSP 放行 s.axon.ai（script-src + connect-src）', (() => {
+    const csp = axHome.headers.get('content-security-policy') || '';
+    return /script-src[^;]*https:\/\/s\.axon\.ai/.test(csp) && /connect-src[^;]*axon\.ai/.test(csp);
+  })(), (axHome.headers.get('content-security-policy') || '').slice(0, 80));
+
   /* ---------------- 3折专区（首页人工精选） ---------------- */
   const deals = JSON.parse((await head('/data/deals.json')).text);
   ok('3折专区数据可取', Array.isArray(deals.items) && deals.items.length > 0, `items=${(deals.items || []).length}`);

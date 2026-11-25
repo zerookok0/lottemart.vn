@@ -139,7 +139,7 @@
     if (EV[evName] === false) return;
     const params = (detail && detail.params) || {};
 
-    if (evName === 'page_view') return ax.pageView();
+    if (evName === 'page_view') return null; // page_view 在 boot 时已自己打过，避免回放时重复
 
     const raw = Array.isArray(params.contents)
       ? params.contents.map((c) => ({ id: c.id, name: params.content_name, price: c.item_price, qty: c.quantity }))

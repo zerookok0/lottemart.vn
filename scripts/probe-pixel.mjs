@@ -80,14 +80,34 @@ const main = async () => {
   };
 
   const reqs = [];
+  const posts = [];
+  const failed = [];
+  const reqUrlById = {};
+  const consoleMsgs = [];
   ws.addEventListener('message', (ev) => {
     const m = JSON.parse(ev.data);
-    if (m.method === 'Network.requestWillBeSent' && m.params && m.params.request) reqs.push(m.params.request.url);
+    if (m.method === 'Network.requestWillBeSent' && m.params && m.params.request) {
+      reqs.push(m.params.request.url);
+      posts.push(`${m.params.request.method} ${m.params.request.url}`);
+      reqUrlById[m.params.requestId] = m.params.request.url;
+    }
+    if (m.method === 'Network.loadingFailed' && m.params) {
+      failed.push(`${m.params.errorText || 'failed'} → ${reqUrlById[m.params.requestId] || '?'}`);
+    }
+    if (m.method === 'Runtime.consoleAPICalled' && m.params) {
+      consoleMsgs.push((m.params.args || []).map((a) => a.value || a.description || '').join(' ').slice(0, 160));
+    }
   });
 
   console.log('[probe] 打开', URL_TARGET);
   await send('Page.navigate', { url: URL_TARGET });
-  await sleep(7000);
+  await sleep(Number(process.env.PROBE_WAIT || 12000));
+
+  /* PROBE_RELOAD=1：先重载一次（让第一方 cookie 已存在），再观察事件是否上报 */
+  if (process.env.PROBE_RELOAD === '1') {
+    await send('Page.reload', { ignoreCache: false });
+    await sleep(Number(process.env.PROBE_WAIT || 12000));
+  }
 
   /* 可选：--eval='<js>' 在页面上跑一段调试代码，结果打在最后 */
   const evalIdx = process.argv.indexOf('--eval');
@@ -96,6 +116,28 @@ const main = async () => {
     const r = await ev(evalCode);
     console.log('\n=== eval ===');
     console.log(typeof r === 'string' ? r : JSON.stringify(r, null, 2));
+  }
+
+  /* PROBE_FORCE=1：手动再打一次 page_view，观察是否真发到 b.applovin.com/v1/pixel */
+  if (process.env.PROBE_FORCE === '1') {
+    const r = await ev(`
+      const out = {};
+      try { window.axon('init', '736af0a3-f6a1-4e98-80f3-1e70ab180f37'); out.init = 'ok'; } catch (e) { out.init = String(e.message); }
+      try { window.axon('track', 'page_view'); out.track = 'ok'; } catch (e) { out.track = String(e.message); }
+      out.q = window.axon && Array.isArray(window.axon.operationQueue) ? window.axon.operationQueue.length : null;
+      out.perf = typeof (window.axon && window.axon.performOperation);
+      return out;
+    `);
+    console.log('\n=== forced track ===');
+    console.log(JSON.stringify(r));
+    await sleep(3000);
+    /* 有些像素在页面隐藏/卸载时才 flush 事件，这里触发一次 pagehide */
+    try {
+      await send('Runtime.evaluate', { expression: `window.dispatchEvent(new Event('pagehide')); document.dispatchEvent(new Event('visibilitychange')); 1` });
+      await sleep(2000);
+      await send('Page.navigate', { url: 'about:blank' });
+      await sleep(2500);
+    } catch (e) {}
   }
 
   const state = await ev(`
@@ -148,7 +190,8 @@ const main = async () => {
     };
   `);
 
-  const axios = reqs.filter((u) => /axon\.ai/i.test(u));
+  const axios = reqs.filter((u) => /axon\.ai|applovin\.com|quantarelay/i.test(u));
+  const axCalls = posts.filter((x) => /axon\.ai|applovin\.com|quantarelay/i.test(x));
   console.log('\n=== 页面 ===');
   console.log('title      :', state.title);
   console.log('axpixel 标签:', state.axTags, '| typeof axon:', state.axonType, '| 队列长度:', state.axQueue);
@@ -159,6 +202,10 @@ const main = async () => {
   console.log('映射自检    :', state.mirror);
   console.log('bridge 重放 :', state.replay);
   console.log('axon.ai 请求:', axios.length ? axios.join('\n              ') : '（无）');
+  console.log('失败请求    :', failed.length ? failed.slice(0, 8).join(' | ') : '（无）');
+  console.log('POST 请求   :', posts.length ? posts.slice(0, 8).join('\n              ') : '（无）');
+  console.log('AppLovin 调用:', axCalls.length ? axCalls.join('\n              ') : '（无）');
+  console.log('控制台      :', consoleMsgs.length ? consoleMsgs.slice(-8).join(' || ') : '（无）');
   console.log('\n=== Facebook ===');
   console.log('typeof fbq :', state.fbq, '| 事件:', JSON.stringify(state.fbLog));
   console.log('bridge 缓冲 :', JSON.stringify(state.bridge));

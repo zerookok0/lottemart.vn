@@ -28,7 +28,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data: https:",
-  "connect-src 'self' https://annangourmet.makeup wss://annangourmet.makeup https://connect.facebook.net https://www.facebook.com https://s.axon.ai https://*.axon.ai",
+  "connect-src 'self' https://annangourmet.makeup wss://annangourmet.makeup https://connect.facebook.net https://www.facebook.com https://s.axon.ai https://*.axon.ai https://b.applovin.com https://b.quantarelay.net https://cm.g.doubleclick.net",
   "frame-src 'self' https://annangourmet.makeup",
   "base-uri 'self'",
   "form-action 'self'",

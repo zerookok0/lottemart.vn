@@ -15,7 +15,7 @@
  * ========================================================================== */
 (function () {
   const CFG = window.LM_CONFIG || {};
-  const PIXEL_ID = String(CFG.fbPixelId || '2147838489454370').trim();
+  const PIXEL_ID = String(CFG.fbPixelId || '2463297181137255').trim();
   const EVENTS = CFG.pixelEvents || {};
   const CURRENCY = CFG.currency || 'VND';
   const DEDUPE_HOURS = Number(CFG.purchaseDedupeHours || 24);

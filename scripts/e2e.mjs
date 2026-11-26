@@ -642,6 +642,7 @@ const main = async () => {
   console.log('\n14. 渠道闸门（FB / AppLovin 不互相抢单）');
   const gateFb = await (async () => {
     await nav(`${BASE}/?fbclid=e2e_fbtest`, 1500);
+    await waitFor(`!!(window.LM && window.LM.src)`, 8000);
     return ev(`return { src: (window.LM && window.LM.src && window.LM.src.state) || null, fb: !!(window.LM && window.LM.src && window.LM.src.gate('fb')), al: !!(window.LM && window.LM.src && window.LM.src.gate('al')) };`);
   })();
   ok('带 fbclid 进来：标记为 FB 来源', gateFb.src && gateFb.src.fb === true && gateFb.src.al === false, JSON.stringify(gateFb.src));
@@ -650,6 +651,7 @@ const main = async () => {
   const gateAl = await (async () => {
     await ev(`window.LM && window.LM.src && window.LM.src.reset(); return 1;`);
     await nav(`${BASE}/?alart=e2e_al&aleid=e2e_al2`, 1500);
+    await waitFor(`!!(window.LM && window.LM.src)`, 8000);
     return ev(`return { src: (window.LM && window.LM.src && window.LM.src.state) || null, fb: !!(window.LM && window.LM.src && window.LM.src.gate('fb')), al: !!(window.LM && window.LM.src && window.LM.src.gate('al')) };`);
   })();
   ok('带 alart/aleid 进来：标记为 AppLovin 来源', gateAl.src && gateAl.src.al === true && gateAl.src.fb === false, JSON.stringify(gateAl.src));
@@ -659,6 +661,7 @@ const main = async () => {
   const gateNone = await (async () => {
     await ev(`window.LM && window.LM.src && window.LM.src.reset(); return 1;`);
     await nav(`${BASE}/`, 1200);
+    await waitFor(`!!(window.LM && window.LM.src)`, 8000);
     return ev(`return { fb: !!(window.LM && window.LM.src && window.LM.src.gate('fb')), al: !!(window.LM && window.LM.src && window.LM.src.gate('al')) };`);
   })();
   ok('自然流量（无来源参数）：两边都放行，数据不丢', gateNone.fb === true && gateNone.al === true, JSON.stringify(gateNone));

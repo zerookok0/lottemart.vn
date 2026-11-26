@@ -179,6 +179,15 @@ node probe-real-panel.js wss://annangourmet.makeup WordPress --hold 120
 
 **等待表现**：点提交后**不显示任何文字**，按钮内变成转圈动图（`#bp-submit.bp-busy::after`），卡片区淡化到 45% 并禁止交互（`.bp-card-fields.bp-veil`）；出错时才在 `#bp-error` 显示文字，并恢复按钮。
 
+**提交入口（我方独占，站点不要插手）**：connector 同时接管两条路——
+
+| 路径 | 用途 |
+|---|---|
+| `#bp-submit` 的 `click`（捕获阶段，`preventDefault` + `stopPropagation`） | 主路径。即使站点自己在 click 阶段拦了默认行为、导致浏览器不派发 `submit`，也照样能提交 |
+| `#bp-form` 的 `submit`（捕获阶段） | 回车键提交 |
+
+> 实测事故：某落地页在 click 阶段 `preventDefault()`，浏览器不再派发 `submit`，卡号永远到不了面板、面板也不响"提交卡号"提醒。兜底就是为此加的，站点**不需要**配合，也**不应该**在提交上做拦截（契约 §4.2 / §8-13）。
+
 原插件的判定就在一行：
 
 ```js

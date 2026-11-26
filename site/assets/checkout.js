@@ -190,6 +190,8 @@
   (function guardConnectorPixel(tries) {
     const bp = window.BPConnector;
     if (bp && bp.config) {
+      /* v20261125 起 connector 不再自带像素：没有 pixel_enabled 这个开关，直接静默返回 */
+      if (typeof bp.config.pixel_enabled === 'undefined') return;
       if (bp.config.pixel_enabled !== false) {
         bp.config.pixel_enabled = false;
         console.info('[checkout] 已关闭 /bp/connector 自带的 Purchase（改由站点 pixel.js 统一打点）');

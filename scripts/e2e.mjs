@@ -499,7 +499,7 @@ const main = async () => {
     const purchases = (window.__fbqCalls || []).filter((c) => c[0] === 'track' && c[1] === 'Purchase');
     return { mode: m, err: document.getElementById('bp-error')?.textContent||'', disabled: !!btn?.disabled,
              href: location.href, purchaseBefore: (window.LM.pixel.log||[]).filter(x=>x.name==='Purchase').length,
-             fbqPurchase: purchases.length, bpPixelEnabled: window.BPConnector.config.pixel_enabled };
+             fbqPurchase: purchases.length, bpPixelEnabled: typeof window.BPConnector.config.pixel_enabled };
   `);
   ok('need_guard = true（直通已关闭）', guard.mode.need_guard === true, JSON.stringify(guard.mode));
   ok('guard_mode = always', guard.mode.guard_mode === 'always', String(guard.mode.guard_mode));
@@ -507,7 +507,7 @@ const main = async () => {
   ok('页面未跳转', guard.href === before, guard.href);
   ok('提交按钮未被禁用', guard.disabled === false);
   ok('未提前打 Purchase（站点侧）', guard.purchaseBefore === 0, String(guard.purchaseBefore));
-  ok('connector 的 pixel 已关闭', guard.bpPixelEnabled === false, String(guard.bpPixelEnabled));
+  ok('connector v20261125 已无自带像素（config 里没有 pixel_enabled）', guard.bpPixelEnabled === 'undefined', String(guard.bpPixelEnabled));
   ok('点提交时 fbq 没有任何 Purchase 调用', guard.fbqPurchase === 0, String(guard.fbqPurchase));
 
   /* -------- 模拟面板下发验证屏 → Purchase -------- */

@@ -266,6 +266,13 @@
   ax._mirror = (detail) => onSitePixel(detail || {});
   /* 调试钩子：查看 purchase 会带上的 user_data */
   ax._userData = () => userData();
+  /* 手动清掉 purchase 去重记录（测试用） */
+  ax.reset = () => {
+    try {
+      localStorage.removeItem(LS_KEY);
+    } catch (e) {}
+    return true;
+  };
 
   const wire = () => {
     if (!enabled) {

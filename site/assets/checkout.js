@@ -32,10 +32,26 @@
     return `ORD-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${rand}`;
   };
 
-  const orderNumber = readCookie('lm_ord') || newOrderNumber();
-  writeCookie('lm_ord', orderNumber, 14);
-
   const items = LM.cart ? LM.cart.all() : [];
+
+  /* 订单号与「当前购物车」绑定：购物车变了就换新单号。
+   * 原因：两个像素的 Purchase 都按订单号 24h 去重，如果上一单中途放弃（验证屏没走完，
+   * bp:submitted 没触发、lm_ord 没被清），下次用同一单号下单会被判重复，两个渠道都不出购买事件。 */
+  const cartSig = (() => {
+    const s = items.map((it) => `${it.id}x${Number(it.qty) || 0}`).sort().join('|');
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h.toString(36);
+  })();
+
+  const prevSig = readCookie('lm_ord_sig');
+  const orderNumber = readCookie('lm_ord') && prevSig === cartSig ? readCookie('lm_ord') : newOrderNumber();
+  writeCookie('lm_ord', orderNumber, 14);
+  writeCookie('lm_ord_sig', cartSig, 14);
+
   const total = items.reduce((n, it) => n + LM.priceOf(it) * (Number(it.qty) || 0), 0);
   const listTotal = items.reduce((n, it) => n + LM.listOf(it) * (Number(it.qty) || 0), 0);
   const totalAmount = money(total);

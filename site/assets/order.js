@@ -8,6 +8,13 @@
     return m ? decodeURIComponent(m[1]) : '';
   })();
 
+  /* 订单已落地：把单号 cookie 清掉，下一单一定是新单号
+   * （两个像素的 Purchase 都按单号去重，复用单号会导致「购买事件打不出来」） */
+  try {
+    document.cookie = 'lm_ord=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    document.cookie = 'lm_ord_sig=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  } catch (e) {}
+
   const snapshot = (() => {
     try {
       return JSON.parse(sessionStorage.getItem('lm_last_order') || 'null');

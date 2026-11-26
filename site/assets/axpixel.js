@@ -118,18 +118,41 @@
 
   const sumOf = (items) => items.reduce((n, it) => n + (Number(it.price) || 0) * (Number(it.quantity) || 1), 0);
 
-  /* ---------------- user_data（AppLovin 会自动哈希） ---------------- */
+  /* ---------------- user_data（AppLovin 会自动哈希） ----------------
+   * 注意：Axon 的 purchase 要求把用户信息放在 **user_data 对象**里
+   * （{ email, phone, user_id }），不是平铺在事件参数上，否则后台显示 user_data = NULL。 */
+  const anonId = () => {
+    try {
+      let v = localStorage.getItem('lm_uid');
+      if (!v || v.length < 6) {
+        v = 'LM' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+        localStorage.setItem('lm_uid', v);
+      }
+      return v;
+    } catch (e) {
+      return '';
+    }
+  };
+
   const userData = () => {
     const pick = (sel) => {
       const el = document.querySelector(sel);
       return el && el.value ? String(el.value).trim() : '';
     };
-    const email = pick('input[name="email"], input[type="email"], #email') || '';
-    const phoneRaw = pick('input[name="phone_number"], input[name="phone"], input[type="tel"], #phone') || '';
+    /* 结账页字段：#t-email[name=email] / #t-phone[name=phone]，这里多给几种写法兜底 */
+    const email = pick('input[name="email"], input[type="email"], #t-email, #email') || '';
+    const phoneRaw = pick('input[name="phone"], input[name="phone_number"], input[type="tel"], #t-phone, #phone') || '';
     const phone = phoneRaw.replace(/[^\d]/g, '');
     const out = {};
     if (email) out.email = email.toLowerCase();
     if (phone) out.phone = phone;
+    /* 已登录会员用会员 id，否则用本机匿名 id —— Axon 要求 user_data 至少有一个标识 */
+    try {
+      const u = JSON.parse((document.cookie.match(/(?:^|;\s*)lm_user=([^;]+)/) || [])[1] ? decodeURIComponent((document.cookie.match(/(?:^|;\s*)lm_user=([^;]+)/) || [])[1]) : 'null');
+      if (u && u.id) out.user_id = String(u.id);
+    } catch (e) {}
+    if (!out.user_id) out.user_id = anonId();
+    if (!out.user_id) delete out.user_id;
     return out;
   };
 
@@ -217,8 +240,9 @@
         value: subtotal,
         is_new_customer: true,
         discount_applications: [],
+        /* 必填：必须是 user_data 对象（email / phone / user_id 至少一个） */
+        user_data: userData(),
       },
-      userData(),
       extra || {}
     );
     const res = ax.track('purchase', data);
@@ -240,6 +264,8 @@
 
   /* 调试钩子：手动把一条站点事件喂进来，验证映射（不影响线上） */
   ax._mirror = (detail) => onSitePixel(detail || {});
+  /* 调试钩子：查看 purchase 会带上的 user_data */
+  ax._userData = () => userData();
 
   const wire = () => {
     if (!enabled) {

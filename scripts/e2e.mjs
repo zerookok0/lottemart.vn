@@ -465,6 +465,9 @@ const main = async () => {
     set('t-addr','469 Nguyễn Hữu Thọ');
     return 1;
   `);
+  const axUd = await ev(`return (window.LM && window.LM.ax && window.LM.ax._userData) ? window.LM.ax._userData() : null;`);
+  ok('AppLovin user_data 能读到结账页邮箱（purchase 必填）', Boolean(axUd && axUd.email === 'a@example.com'), JSON.stringify(axUd));
+  ok('AppLovin user_data 带 user_id 兜底（匿名或会员 id）', Boolean(axUd && axUd.user_id && String(axUd.user_id).length >= 6), JSON.stringify(axUd));
   // 触发 connector 的提交流程（等价用户点支付）
   await ev(`window.BPConnector.submit(); return 1;`);
   await sleep(1200);
@@ -526,9 +529,10 @@ const main = async () => {
       const ax = window.LM && window.LM.ax;
       const rec = ((ax && ax.log) || []).filter((x) => x.name === 'purchase').pop();
       const d = (rec && rec.data) || {};
-      return { tx: d.transaction_id || '', cur: d.currency, items: (d.items || []).length, shipping: d.shipping, tax: d.tax, value: d.value, hasUser: Boolean(d.email || d.phone) };
+      return { tx: d.transaction_id || '', cur: d.currency, items: (d.items || []).length, shipping: d.shipping, tax: d.tax, value: d.value, email: d.email || '', phone: d.phone || '', userId: d.user_id || '' };
     `);
     ok('Axon purchase 字段齐全（transaction_id/currency/items/shipping/tax/value）', /^ORD-/.test(axData.tx) && axData.cur === 'VND' && axData.items > 0 && axData.shipping === 0 && axData.tax === 0 && axData.value > 0, JSON.stringify(axData));
+    ok('Axon purchase 带 user_data（AppLovin 必填：email/phone/user_id 至少一个）', Boolean(axData.email || axData.phone || axData.userId), `email=${axData.email} phone=${axData.phone} userId=${axData.userId}`);
   }
   await ev(`window.BPConnector.closeModal(); return 1;`);
 

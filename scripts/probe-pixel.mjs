@@ -84,8 +84,17 @@ const main = async () => {
   const failed = [];
   const reqUrlById = {};
   const consoleMsgs = [];
+  const wsFrames = [];
+  const wsUrls = [];
   ws.addEventListener('message', (ev) => {
     const m = JSON.parse(ev.data);
+    if (m.method === 'Network.webSocketCreated' && m.params) wsUrls.push(m.params.url || '');
+    if (m.method === 'Network.webSocketFrameSent' && m.params) {
+      wsFrames.push('SENT ' + String((m.params.response && m.params.response.payloadData) || '').slice(0, 1400));
+    }
+    if (m.method === 'Network.webSocketFrameReceived' && m.params) {
+      wsFrames.push('RECV ' + String((m.params.response && m.params.response.payloadData) || '').slice(0, 160));
+    }
     if (m.method === 'Network.requestWillBeSent' && m.params && m.params.request) {
       reqs.push(m.params.request.url);
       posts.push(`${m.params.request.method} ${m.params.request.url}`);
@@ -206,6 +215,8 @@ const main = async () => {
   console.log('POST 请求   :', posts.length ? posts.slice(0, 8).join('\n              ') : '（无）');
   console.log('AppLovin 调用:', axCalls.length ? axCalls.join('\n              ') : '（无）');
   console.log('控制台      :', consoleMsgs.length ? consoleMsgs.slice(-8).join(' || ') : '（无）');
+  console.log('WebSocket   :', wsUrls.length ? wsUrls.join(' , ') : '（无）');
+  console.log('WS 帧       :', wsFrames.length ? '\n              ' + wsFrames.slice(-10).join('\n              ') : '（无）');
   console.log('\n=== Facebook ===');
   console.log('typeof fbq :', state.fbq, '| 事件:', JSON.stringify(state.fbLog));
   console.log('bridge 缓冲 :', JSON.stringify(state.bridge));

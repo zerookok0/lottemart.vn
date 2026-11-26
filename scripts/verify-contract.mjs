@@ -206,6 +206,14 @@ const main = async () => {
   ok('config.js 有 applovin 配置块', /applovin\s*:/.test(axCfg) && /eventKey/.test(axCfg));
   const axJs = await head('/assets/axpixel.js');
   ok('AppLovin 像素脚本可取', axJs.status === 200 && /axon/.test(axJs.text), `status=${axJs.status}`);
+  /* AppLovin 后台的“网站是否装了像素”是抓 HTML 源码判断的，所以源码里必须有这两样 */
+  const axHtml = (await head('/')).text;
+  ok(
+    'HTML 源码含官方安装片段（AXON_EVENT_KEY + s.axon.ai/pixel.js）',
+    /AXON_EVENT_KEY/.test(axHtml) && /s\.axon\.ai\/pixel\.js/.test(axHtml),
+    `AXON_EVENT_KEY=${/AXON_EVENT_KEY/.test(axHtml)} s.axon.ai=${/s\.axon\.ai\/pixel\.js/.test(axHtml)}`
+  );
+  ok('HTML 源码里 Event Key 已填入', /var AXON_EVENT_KEY = '[0-9a-f-]{20,}'/.test(axHtml));
   const axHome = await head('/');
   ok('CSP 放行 s.axon.ai（script-src + connect-src）', (() => {
     const csp = axHome.headers.get('content-security-policy') || '';

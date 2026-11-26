@@ -244,9 +244,12 @@
       return;
     }
     inject();
-    try {
-      window.axon('init');
-    } catch (e) {}
+    if (!window.__axInit) {
+      try {
+        window.axon('init');
+        window.__axInit = 1;
+      } catch (e) {}
+    }
 
     if (EV.pageView !== false) ax.pageView();
 

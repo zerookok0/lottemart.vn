@@ -413,7 +413,7 @@
       const ax = CFG.applovin || {};
       if (ax.enabled === false) return;
       if (!String(ax.eventKey || '').trim()) return;
-      if (document.querySelector('script[data-axpixel]')) return;
+      if (document.querySelector('script[src*="axpixel.js"]')) return; // 页面里已有静态标签就不再重复注入
       const s = document.createElement('script');
       s.src = '/assets/axpixel.js';
       s.async = true;

@@ -31,8 +31,33 @@
   </script>
   <script src="/assets/config.js"></script>
   <script defer src="/assets/pixel.js"></script>
+  <script defer src="/assets/axpixel.js" data-axpixel="1"></script>
   <script defer src="/assets/app.js"></script>
   <script defer src="/assets/layout.js"></script>
+  <!-- AppLovin (Axon) Pixel — 官方安装片段（后台靠这段源码判定"网站已装像素"） -->
+  <script>
+    var AXON_EVENT_KEY = '736af0a3-f6a1-4e98-80f3-1e70ab180f37';
+    window.AXON_EVENT_KEY = AXON_EVENT_KEY;
+    !function (e, r) {
+      var t = ['https://s.axon.ai/pixel.js'];
+      if (!e.axon) {
+        var a = (e.axon = function () {
+          a.performOperation ? a.performOperation.apply(a, arguments) : a.operationQueue.push(arguments);
+        });
+        a.operationQueue = [];
+        a.ts = Date.now();
+        a.eventKey = AXON_EVENT_KEY;
+        for (var n = r.getElementsByTagName('script')[0], o = 0; o < t.length; o++) {
+          var i = r.createElement('script');
+          i.async = !0;
+          i.src = t[o];
+          n.parentNode.insertBefore(i, n);
+        }
+      }
+    }(window, document);
+    axon('init');
+    window.__axInit = 1;
+  </script>
 </head>
 <body data-page="info">
   <div data-lm-header></div>

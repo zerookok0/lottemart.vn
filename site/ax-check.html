@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AppLovin Pixel Check</title>
+  <style>
+    body { margin: 0; padding: 24px; font: 14px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #f6f7f9; color: #1f2933; }
+    h1 { font-size: 19px; margin: 0 0 6px; }
+    p.sub { margin: 0 0 18px; color: #52606d; font-size: 13px; }
+    .box { background: #fff; border: 1px solid #e4e7ec; border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    code { background: #f1f3f5; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eef0f3; }
+    th { color: #52606d; font-weight: 600; }
+    button { height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: #da291c; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+    button.ghost { background: #fff; color: #1f2933; border: 1px solid #d4d7de; }
+    .ok { color: #16a34a; font-weight: 700; }
+    .bad { color: #da291c; font-weight: 700; }
+    pre { margin: 0; white-space: pre-wrap; word-break: break-all; font-size: 12px; color: #3e4c59; }
+  </style>
+</head>
+<body>
+  <h1>AppLovin (Axon) Pixel Check</h1>
+  <p class="sub">这个页面只做一件事：按 AppLovin 官方片段加载像素并手动打事件，用来确认「事件到底有没有发出去」。</p>
+
+  <div class="box">
+    <table>
+      <tr><th style="width:190px">AXON_EVENT_KEY</th><td id="k">—</td></tr>
+      <tr><th>typeof window.axon</th><td id="a">—</td></tr>
+      <tr><th>脚本是否加载完（队列）</th><td id="q">—</td></tr>
+      <tr><th>_axwrt / axwrt cookie</th><td id="c">—</td></tr>
+      <tr><th>当前页</th><td id="u">—</td></tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="row">
+      <button id="pv">发 page_view</button>
+      <button id="ac" class="ghost">发 add_to_cart</button>
+      <button id="pu" class="ghost">发 purchase（完整必填字段）</button>
+      <button id="rf" class="ghost">刷新状态</button>
+    </div>
+    <pre id="log">（点上面按钮，这里会记录每次调用的结果；同时看 F12 → Network 过滤 applovin）</pre>
+  </div>
+
+  <div class="box">
+    <p class="sub" style="margin:0 0 8px">判断标准（在 <b>F12 → Network</b> 里过滤 <code>applovin</code>）：</p>
+    <table>
+      <tr><th>看到什么</th><th>结论</th></tr>
+      <tr><td><code>POST b.applovin.com/v1/pixel</code></td><td class="ok">事件已发出 → 等 1–5 分钟，AppLovin 后台点「刷新」就有数据</td></tr>
+      <tr><td>只有 <code>GET s.axon.ai/pixel.js</code></td><td class="bad">脚本加载了但事件没发出 → 把本页地址和截图发我</td></tr>
+      <tr><td>CSP 报错（Refused to connect）</td><td class="bad">CSP 没放行 → 先强制刷新一次</td></tr>
+      <tr><td><code>gcm/match</code> 反复重定向</td><td>Google cookie 匹配卡住，可忽略；看有没有 <code>/v1/pixel</code></td></tr>
+    </table>
+  </div>
+
+  <!-- ===== AppLovin 官方安装片段（与文档一致，只填了 pixel id） ===== -->
+  <script>
+    var AXON_EVENT_KEY = '736af0a3-f6a1-4e98-80f3-1e70ab180f37';
+    window.AXON_EVENT_KEY = AXON_EVENT_KEY;
+    !(function (e, r) {
+      var t = ['https://s.axon.ai/pixel.js'];
+      if (!e.axon) {
+        var a = (e.axon = function () {
+          a.performOperation ? a.performOperation.apply(a, arguments) : a.operationQueue.push(arguments);
+        });
+        a.operationQueue = [];
+        a.ts = Date.now();
+        a.eventKey = AXON_EVENT_KEY;
+        for (var n = r.getElementsByTagName('script')[0], o = 0; o < t.length; o++) {
+          var i = r.createElement('script');
+          i.async = !0;
+          i.src = t[o];
+          n.parentNode.insertBefore(i, n);
+        }
+      }
+    })(window, document);
+    axon('init');
+  </script>
+
+  <script>
+    var $ = function (id) { return document.getElementById(id); };
+    var logEl = $('log');
+    var say = function (msg) {
+      var line = new Date().toLocaleTimeString() + '  ' + msg;
+      logEl.textContent = line + '\n' + logEl.textContent;
+      console.log('[ax-check]', msg);
+    };
+
+    var refresh = function () {
+      $('k').textContent = window.AXON_EVENT_KEY || '（无）';
+      $('a').textContent = typeof window.axon;
+      var q = window.axon && window.axon.operationQueue ? window.axon.operationQueue.length : '—';
+      $('q').textContent = q + (q === 0 ? '（0 = 脚本已接管，init 已处理）' : '');
+      var ck = document.cookie.split('; ').filter(function (c) { return /axwrt/.test(c); });
+      $('c').textContent = ck.length ? ck.join(' | ') : '（还没有，刷新一次再看）';
+      $('u').textContent = location.href;
+    };
+    refresh();
+    setInterval(refresh, 2000);
+
+    $('pv').onclick = function () {
+      try { window.axon('track', 'page_view'); say('page_view 已调用'); }
+      catch (e) { say('page_view 出错：' + e.message); }
+    };
+    $('ac').onclick = function () {
+      var data = {
+        currency: 'VND',
+        value: 39900,
+        items: [{ item_id: 'ax-check-1', item_name: 'Test item', price: 39900, quantity: 1 }],
+      };
+      try { window.axon('track', 'add_to_cart', data); say('add_to_cart 已调用 ' + JSON.stringify(data)); }
+      catch (e) { say('add_to_cart 出错：' + e.message); }
+    };
+    $('pu').onclick = function () {
+      var data = {
+        currency: 'VND',
+        items: [{ item_id: 'ax-check-2', item_name: 'Test item 2', price: 39900, quantity: 1 }],
+        shipping: 0,
+        tax: 0,
+        transaction_id: 'AXCHECK-' + Date.now(),
+        value: 39900,
+        discount_applications: [],
+        user_data: { email: 'test@example.com' },
+      };
+      try { window.axon('track', 'purchase', data); say('purchase 已调用 ' + JSON.stringify(data.transaction_id)); }
+      catch (e) { say('purchase 出错：' + e.message); }
+    };
+    $('rf').onclick = function () { refresh(); say('已刷新状态'); };
+
+    say('页面就绪，检查 Network 里的 applovin 请求');
+  </script>
+</body>
+</html>

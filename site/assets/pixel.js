@@ -76,8 +76,10 @@
     } catch (e) {}
     if (!PIXEL_ID) return payload;
     if (EVENTS[evKey(name)] === false) return payload;
-    /* 渠道闸门：转化级事件只发给带来这个用户的那条渠道（自然流量 → 两边都发） */
-    if (CONV_EVENTS[name] && window.LM && LM.src && !LM.src.gate('fb')) {
+    /* 渠道闸门：默认不拦 Facebook（主力渠道）。
+     * 只有 config.attribution.blockFb = true 时才按来源拦截，避免误伤 Meta 转化。 */
+    const ATTR = CFG.attribution || {};
+    if (ATTR.blockFb && CONV_EVENTS[name] && window.LM && LM.src && !LM.src.gate('fb')) {
       px.log.push({ name, params: payload, at: Date.now(), gated: 'not-fb-source' });
       return payload;
     }
@@ -281,7 +283,7 @@
       return res;
     }
 
-    if (window.LM && LM.src && !LM.src.gate('fb')) {
+    if ((CFG.attribution || {}).blockFb && window.LM && LM.src && !LM.src.gate('fb')) {
       const res = { ok: false, why: 'gated-not-fb-source' };
       STATE.last = res;
       px.log.push({ name: 'Purchase', params: { skipped: res.why }, at: Date.now() });

@@ -73,7 +73,10 @@
       LOG.push(rec);
       return rec;
     }
-    if (CONV[name] && window.LM && LM.src && !LM.src.gate('al')) {
+    /* 渠道闸门：只在来源明确是 FB 时拦 AppLovin（config.attribution.blockAppLovin）
+     * 默认开着 —— 不抢 Meta 的转化；关掉就是两边都发 */
+    const ATTR = (window.LM_CONFIG && window.LM_CONFIG.attribution) || {};
+    if (ATTR.blockAppLovin !== false && CONV[name] && window.LM && LM.src && !LM.src.gate('al')) {
       rec.why = 'gated-not-al-source';
       LOG.push(rec);
       return rec;

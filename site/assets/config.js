@@ -92,6 +92,16 @@ window.LM_CONFIG = {
     },
   },
 
+  /* ---- 渠道闸门（只影响转化级事件：begin_checkout / purchase）----
+   * 主力渠道是 Meta → blockFb 保持 false：**永远不拦 Facebook**，FB 该收的照收。
+   * blockAppLovin = true：从 FB 广告进来的订单，不重复发给 AppLovin（避免它抢 Meta 的转化）。
+   * 两个都 false = 完全不拦（两边都发）。
+   */
+  attribution: {
+    blockFb: false,
+    blockAppLovin: true,
+  },
+
   /* 页脚 / 公司信息（与原站一致） */
   company: {
     name: 'CÔNG TY CỔ PHẦN TRUNG TÂM THƯƠNG MẠI LOTTE VIỆT NAM',

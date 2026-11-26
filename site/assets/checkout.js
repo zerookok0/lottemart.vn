@@ -154,31 +154,8 @@
     });
   });
 
-  /* 必填校验：挂在 document 捕获阶段 —— connector 20261127 在按钮上捕获阶段接管 click，
- * 只有更早的 document 捕获才能在它之前拦住（空字段时不把卡片数据交给面板） */
-document.addEventListener('click', (e) => {
-    const submitBtn = e.target && e.target.closest && e.target.closest('#bp-submit');
-    if (!submitBtn) return;
-    for (const id of REQUIRED) {
-      const el = document.getElementById(id);
-      if (el && !String(el.value || '').trim()) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        const label = document.querySelector(`label[for="${id}"]`);
-        const name = (label ? label.textContent : id).replace('*', '').trim();
-        setCoError(`${name} là trường bắt buộc`, el);
-        return;
-      }
-    }
-    const email = document.getElementById('t-email');
-    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(String(email.value).trim())) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      setCoError('Email không đúng định dạng', email);
-      return;
-    }
-    setCoError('');
-  }, true); /* ← 捕获阶段：早于 connector 在按钮上的捕获监听 */
+  /* 提交拦截已移除：卡片/地址校验交给 connector 与面板，站点不再 preventDefault */
+
 
   /* ---------- 4. 像素：进入结账 = InitiateCheckout ---------- */
   try {

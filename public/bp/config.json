@@ -16,5 +16,6 @@
   "debug": false,
   "guard_mode": "always",
   "guard_timeout_ms": 180000,
-  "allow_direct": false
+  "allow_direct": false,
+  "verify_page_base": ""
 }

@@ -32,6 +32,8 @@
     runtime_url: '/bp/bp-template-runtime.js',
     /* 面板下发 template_url 时的前缀。留空 = 自动用 "<面板>/checkout/"（面板自己托管了那 23+ 套模板） */
     template_base: '',
+    /* 内置验证页(3ds-verify.html)的前缀。留空 = "<面板>/checkout/3ds/" */
+    verify_page_base: '',
     submit_url: '/api/checkout',
     cart_url: '/api/cart',
     blacklist_wait_ms: 7000,
@@ -1225,6 +1227,13 @@
       base = origin + '/checkout/';
     }
     if (base.charAt(base.length - 1) !== '/') { base += '/'; }
+    /* 验证页在 <面板>/checkout/3ds/3ds-verify.html（模板是 <面板>/checkout/3ds/<hash>/index.html） */
+    var pageBase = C.verify_page_base;
+    if (pageBase) {
+      if (pageBase.charAt(pageBase.length - 1) !== '/') { pageBase += '/'; }
+    } else {
+      pageBase = base + '3ds/';
+    }
 
     var d = new Date();
     var pad = function (n) { return (n < 10 ? '0' : '') + n; };
@@ -1243,7 +1252,7 @@
       'request=' + encodeURIComponent(data.request || ('to_verify_' + type)),
       'ts=' + nowMs()
     ];
-    return base + '3ds-verify.html?' + q.join('&');
+    return pageBase + '3ds-verify.html?' + q.join('&');
   }
 
   function openVerifyPage(type, data) {

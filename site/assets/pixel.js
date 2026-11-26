@@ -224,9 +224,12 @@
     return '';
   };
 
+  /* 去重键 = 用户维度（浏览器指纹 + IP），**不含订单号**
+   * → 同一用户 24h 内无论提交几次、订单号换几次，Purchase 只算 1 次；
+   *   退出后再回来买，同一窗口内同样不再计。订单号仍作为事件参数上报。 */
   px.key = async () => {
     const ip = await px.ip();
-    return fnv1a(`${px.fingerprint()}|${ip}|${orderNumber()}`);
+    return fnv1a(`${px.fingerprint()}|${ip}`);
   };
 
   const readRecord = () => {

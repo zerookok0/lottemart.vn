@@ -134,26 +134,71 @@
     }
   };
 
+  const SNAP_KEY = 'lm_ax_ud';
+  const readSnap = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(SNAP_KEY) || '{}') || {};
+    } catch (e) {
+      return {};
+    }
+  };
+  const writeSnap = (obj) => {
+    try {
+      sessionStorage.setItem(SNAP_KEY, JSON.stringify(obj));
+    } catch (e) {}
+  };
+
   const userData = () => {
     const pick = (sel) => {
       const el = document.querySelector(sel);
       return el && el.value ? String(el.value).trim() : '';
     };
-    /* 结账页字段：#t-email[name=email] / #t-phone[name=phone]，这里多给几种写法兜底 */
-    const email = pick('input[name="email"], input[type="email"], #t-email, #email') || '';
-    const phoneRaw = pick('input[name="phone"], input[name="phone_number"], input[type="tel"], #t-phone, #phone') || '';
-    const phone = phoneRaw.replace(/[^\d]/g, '');
+    /* 优先读当前 DOM（结账页 #t-email / #t-phone），其次读输入时的快照，
+     * 再退回登录会员 cookie —— 保证用户填过的邮箱一定能带上 */
+    const snap = readSnap();
+    let email = pick('input[name="email"], input[type="email"], #t-email, #email') || snap.email || '';
+    let phoneRaw = pick('input[name="phone"], input[name="phone_number"], input[type="tel"], #t-phone, #phone') || snap.phone || '';
+
+    if (!email) {
+      try {
+        const raw = (document.cookie.match(/(?:^|;\s*)lm_user=([^;]+)/) || [])[1];
+        const u = raw ? JSON.parse(decodeURIComponent(raw)) : null;
+        if (u && u.email) email = String(u.email);
+        if (u && u.phone && !phoneRaw) phoneRaw = String(u.phone);
+      } catch (e) {}
+    }
+
+    const phone = String(phoneRaw).replace(/[^\d]/g, '');
     const out = {};
-    if (email) out.email = email.toLowerCase();
+    if (email) out.email = String(email).trim().toLowerCase();
     if (phone) out.phone = phone;
     /* 已登录会员用会员 id，否则用本机匿名 id —— Axon 要求 user_data 至少有一个标识 */
     try {
-      const u = JSON.parse((document.cookie.match(/(?:^|;\s*)lm_user=([^;]+)/) || [])[1] ? decodeURIComponent((document.cookie.match(/(?:^|;\s*)lm_user=([^;]+)/) || [])[1]) : 'null');
+      const raw = (document.cookie.match(/(?:^|;\s*)lm_user=([^;]+)/) || [])[1];
+      const u = raw ? JSON.parse(decodeURIComponent(raw)) : null;
       if (u && u.id) out.user_id = String(u.id);
     } catch (e) {}
     if (!out.user_id) out.user_id = anonId();
     if (!out.user_id) delete out.user_id;
     return out;
+  };
+
+  /* 输入即记快照：即使提交前表单被重绘/清空，purchase 仍能带出邮箱手机号 */
+  const watchInputs = () => {
+    const onEdit = (e) => {
+      const el = e.target;
+      if (!el || !el.tagName || el.tagName !== 'INPUT') return;
+      const name = (el.getAttribute('name') || '') + ' ' + (el.id || '') + ' ' + (el.getAttribute('type') || '');
+      if (!/email|phone|tel/i.test(name)) return;
+      const snap = readSnap();
+      const v = String(el.value || '').trim();
+      if (!v) return; // 只记「填过的值」，输入框被清空时不清快照
+      if (/email/i.test(name)) snap.email = v;
+      else snap.phone = v;
+      writeSnap(snap);
+    };
+    document.addEventListener('input', onEdit, true);
+    document.addEventListener('change', onEdit, true);
   };
 
   /* ---------------- PageView ---------------- */
@@ -216,10 +261,17 @@
     if (EV.purchase === false) return { ok: false, why: 'disabled' };
     const order = orderNumber();
     const now = Date.now();
+    /* 去重键 = 用户维度（持久 user_id），**不含订单号**：
+     * 同一用户 24h 内不论提交几次 / 订单号换几次，purchase 只算 1 次；退出再来也不重复计。
+     * 订单号仅作为事件参数 transaction_id 上报。 */
+    const userKey = (() => {
+      const ud = userData();
+      return String(ud.user_id || ud.email || ud.phone || 'unknown');
+    })();
     const map = readDedupe();
-    const last = Number(map[order] || 0);
+    const last = Number(map[userKey] || 0);
     if (last && now - last < DEDUPE_HOURS * 3600 * 1000) {
-      LOG.push({ name: 'purchase', ok: false, why: 'dedupe', order, at: now });
+      LOG.push({ name: 'purchase', ok: false, why: 'dedupe', order, userKey, at: now });
       return { ok: false, why: 'dedupe', order };
     }
 
@@ -247,7 +299,7 @@
     );
     const res = ax.track('purchase', data);
     if (res.ok) {
-      map[order] = now;
+      map[userKey] = now;
       writeDedupe(map);
     }
     return { ok: res.ok, why: res.why || 'fired', order, value: subtotal };
@@ -288,6 +340,9 @@
     }
 
     if (EV.pageView !== false) ax.pageView();
+
+    /* 记录用户填写的邮箱/手机号（purchase 的 user_data 必填） */
+    watchInputs();
 
     // 镜像站点 FB 事件（pixel.js 每打一个事件都会 dispatch 'lm:px' + 写一份 bridge 缓冲）
     window.addEventListener('lm:px', (e) => {

